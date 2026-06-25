@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider, useAuth } from "../lib/auth-context";
 import { CNH_LOGO, WHATSAPP_NUMBER } from "../lib/firebase";
+import { CNH_LOGO } from "../lib/companies";
 
 function NotFoundComponent() {
   return (
