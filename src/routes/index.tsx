@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CNH_LOGO } from "@/lib/firebase";
+import { CNH_LOGO } from "@/lib/companies";
 import { COMPANIES } from "@/lib/companies";
 
 export const Route = createFileRoute("/")({

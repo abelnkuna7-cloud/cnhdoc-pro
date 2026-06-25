@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { CNH_LOGO } from "@/lib/firebase";
+import { CNH_LOGO } from "@/lib/companies";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Sign in — NexDocs" }, { name: "description", content: "Sign in or create your NexDocs account." }] }),
