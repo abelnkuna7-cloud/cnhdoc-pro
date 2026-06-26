@@ -166,9 +166,9 @@ function LeadsPage() {
               <div key={l.id} className="rounded-xl border border-border/60 bg-card/70 p-4 flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="font-semibold text-foreground">{l.name}</div>
-                  {l.rating != null && (
-                    <div className="text-xs text-gold whitespace-nowrap">
-                      ★ {l.rating.toFixed(1)} {l.reviews ? `(${l.reviews})` : ""}
+                  {l.type && (
+                    <div className="text-xs text-gold whitespace-nowrap capitalize">
+                      {l.type}
                     </div>
                   )}
                 </div>
