@@ -70,14 +70,13 @@ function LeadsPage() {
   const exportCsv = () => {
     if (!leads.length) return;
     const rows = [
-      ["Name", "Address", "Phone", "Website", "Rating", "Reviews", "Maps"],
+      ["Name", "Type", "Address", "Phone", "Website", "Maps"],
       ...leads.map((l) => [
         l.name,
+        l.type ?? "",
         l.address ?? "",
         l.phone ?? "",
         l.website ?? "",
-        l.rating?.toString() ?? "",
-        l.reviews?.toString() ?? "",
         l.mapsUrl ?? "",
       ]),
     ];
