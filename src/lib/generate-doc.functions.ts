@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const WORKER_URL = "https://nexdocs-api.cossa.workers.dev";
+const WORKER_URL = "https://nexdocs-api.cossa.workers.dev/api/generate";
 
 export type GenerateInput = {
   company: string;
