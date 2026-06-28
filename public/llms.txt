@@ -1,0 +1,10 @@
+# NexDocs
+
+> AI-powered business document generator for South African businesses. Generates contracts, quotes, HR letters, and legal forms in seconds.
+
+NexDocs is built by Cossa Nexus Holdings for South African SMEs. It offers a 10-day free trial, then R99/month via PayFast. Features include AI document generation across six company profiles, PDF export, and a Gauteng business lead finder.
+
+## Pages
+
+- [Home](/): Overview, pricing, and the six company document categories.
+- [Sign in / Register](/auth): Create an account or sign in to start the 10-day free trial.
