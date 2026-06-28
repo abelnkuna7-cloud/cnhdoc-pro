@@ -16,7 +16,7 @@ export const generateDocument = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      const res = await fetch(`${WORKER_URL}/generate`, {
+      const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
