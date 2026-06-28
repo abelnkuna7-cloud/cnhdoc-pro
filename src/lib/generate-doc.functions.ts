@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const WORKER_URL = "https://nexdocs-api.cossa.workers.dev";
+const WORKER_URL = "https://nexdocs-api.cossa.workers.dev/api/generate";
 
 export type GenerateInput = {
   company: string;
@@ -16,7 +16,7 @@ export const generateDocument = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      const res = await fetch(`${WORKER_URL}/generate`, {
+      const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
