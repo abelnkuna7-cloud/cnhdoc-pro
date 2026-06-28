@@ -4,7 +4,16 @@ import { useAuth } from "@/lib/auth-context";
 import { CNH_LOGO } from "@/lib/companies";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Sign in — NexDocs" }, { name: "description", content: "Sign in or create your NexDocs account." }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in to NexDocs — AI Business Documents" },
+      { name: "description", content: "Sign in or create a NexDocs account to start your 10-day free trial of AI-powered South African business document generation." },
+      { property: "og:title", content: "Sign in to NexDocs — AI Business Documents" },
+      { property: "og:description", content: "Create an account and start generating SA business documents with AI in seconds." },
+      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/auth" }],
+  }),
   component: AuthPage,
 });
 
@@ -53,7 +62,7 @@ function AuthPage() {
       <div className="rounded-2xl border border-border/60 bg-card/80 p-6 backdrop-blur shadow-2xl shadow-black/40">
         <div className="flex flex-col items-center mb-6">
           <img src={CNH_LOGO} alt="CNH" className="h-16 w-16 rounded-xl object-cover" />
-          <h1 className="mt-3 font-display text-2xl text-gold-gradient">NexDocs</h1>
+          <h1 className="mt-3 font-display text-2xl text-gold-gradient">Sign in to NexDocs — AI Business Documents</h1>
           <p className="text-xs text-muted-foreground">Cossa Nexus Holdings</p>
         </div>
 

@@ -7,7 +7,17 @@ import { generateDocument } from "@/lib/generate-doc.functions";
 import jsPDF from "jspdf";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — NexDocs" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dashboard — NexDocs" },
+      { name: "description", content: "Generate professional South African business documents with AI. Choose a company, pick a document type, and download your PDF in seconds." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "NexDocs Dashboard — Generate Your Documents" },
+      { property: "og:description", content: "Your NexDocs workspace for AI-powered SA business document generation." },
+      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/dashboard" },
+    ],
+    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/dashboard" }],
+  }),
   component: Dashboard,
 });
 
@@ -89,6 +99,7 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-10">
+      <h1 className="sr-only">NexDocs Dashboard — Generate Your Documents</h1>
       <div className="rounded-xl border border-border/60 bg-card/70 p-4 sm:p-5 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="font-display text-xl text-foreground">Welcome{profile?.displayName ? `, ${profile.displayName.split(" ")[0]}` : ""}.</div>

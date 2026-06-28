@@ -14,7 +14,17 @@ type UserRow = {
 };
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — NexDocs" }] }),
+  head: () => ({
+    meta: [
+      { title: "Admin — NexDocs" },
+      { name: "description", content: "NexDocs admin console for managing users, trials, and active R99/month subscriptions." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "NexDocs Admin Console" },
+      { property: "og:description", content: "Internal admin dashboard for NexDocs operators." },
+      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/admin" },
+    ],
+    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/admin" }],
+  }),
   component: Admin,
 });
 
