@@ -5,7 +5,17 @@ import { useAuth, daysLeft } from "@/lib/auth-context";
 import { createPayFastCheckout } from "@/lib/payfast.functions";
 
 export const Route = createFileRoute("/subscribe")({
-  head: () => ({ meta: [{ title: "Subscribe — NexDocs" }] }),
+  head: () => ({
+    meta: [
+      { title: "Subscribe — NexDocs" },
+      { name: "description", content: "Subscribe to NexDocs for R99/month via PayFast. Unlimited AI-generated South African business documents, PDF exports, and cancel anytime." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Subscribe to NexDocs — R99/month" },
+      { property: "og:description", content: "Unlimited AI business documents for SA businesses. Cancel anytime." },
+      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/subscribe" },
+    ],
+    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/subscribe" }],
+  }),
   component: SubscribePage,
 });
 
@@ -58,7 +68,8 @@ function SubscribePage() {
           Continue creating unlimited business documents after your trial.
         </p>
 
-        <div className="mt-6 rounded-xl border border-gold/40 p-4">
+        <section className="mt-6 rounded-xl border border-gold/40 p-4">
+          <h2 className="sr-only">Plan details</h2>
           <div className="flex items-baseline justify-between">
             <span className="font-display text-foreground">NexDocs Monthly</span>
             <span className="font-display text-2xl text-gold-gradient">R99<span className="text-sm text-muted-foreground">/mo</span></span>
@@ -69,11 +80,14 @@ function SubscribePage() {
             <li>• PDF downloads</li>
             <li>• Cancel anytime via PayFast</li>
           </ul>
-        </div>
+        </section>
 
-        <div className="mt-4 text-xs text-muted-foreground">
-          Trial: {daysLeft(profile)} day{daysLeft(profile) === 1 ? "" : "s"} remaining
-        </div>
+        <section className="mt-4">
+          <h2 className="sr-only">Trial status</h2>
+          <div className="text-xs text-muted-foreground">
+            Trial: {daysLeft(profile)} day{daysLeft(profile) === 1 ? "" : "s"} remaining
+          </div>
+        </section>
 
         {error && <div className="mt-4 text-sm text-destructive">{error}</div>}
 
