@@ -106,7 +106,9 @@ function Dashboard() {
           <div className="text-sm text-muted-foreground">{profile?.email}</div>
         </div>
         <div className="text-sm">
-          {profile?.subscriptionStatus === "active" ? (
+          {profile?.isAdmin ? (
+            <span className="rounded-full bg-gold-gradient px-3 py-1 font-semibold text-primary-foreground">CEO · Unlimited Access</span>
+          ) : profile?.subscriptionStatus === "active" ? (
             <span className="rounded-full bg-gold-gradient px-3 py-1 font-semibold text-primary-foreground">Active subscriber</span>
           ) : active ? (
             <span className="rounded-full border border-gold/60 px-3 py-1 text-gold">Trial • {dl} day{dl === 1 ? "" : "s"} left</span>
