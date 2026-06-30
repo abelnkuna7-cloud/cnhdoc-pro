@@ -55,3 +55,54 @@ const overpassQuery = `
       if (!json) {
         return { ok: false, error: lastError || "All Overpass mirrors failed" };
       }
+const leads: Lead[] = (json.elements ?? [])
+        .map((el) => {
+          const t = el.tags ?? {};
+          const name = t.name;
+          if (!name) return null;
+
+          const lat = el.lat ?? el.center?.lat;
+          const lon = el.lon ?? el.center?.lon;
+
+          const addressParts = [
+            t["addr:housenumber"],
+            t["addr:street"],
+            t["addr:suburb"],
+            t["addr:city"],
+            t["addr:postcode"],
+          ].filter(Boolean);
+          const address = addressParts.length ? addressParts.join(", ") : undefined;
+
+          const typeLabel =
+            t.amenity || t.shop || t.craft || t.office || t.tourism || t.leisure || undefined;
+
+          return {
+            id: `${el.type}/${el.id}`,
+            name,
+            address,
+            phone: t.phone || t["contact:phone"],
+            website: t.website || t["contact:website"],
+            type: typeLabel ? typeLabel.replace(/_/g, " ") : undefined,
+            mapsUrl:
+              lat != null && lon != null
+                ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`
+                : undefined,
+          } as Lead;
+        })
+        .filter((l): l is Lead => l !== null);
+
+      // De-duplicate: OSM sometimes tags the same business as both a node and a
+      // way, which would otherwise show the same place twice in results.
+      const seen = new Set<string>();
+      const dedupedLeads = leads.filter((l) => {
+        const key = `${l.name.toLowerCase()}|${l.address ?? ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 50);
+
+      return { ok: true, leads: dedupedLeads };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "Search failed" };
+    }
+  });
