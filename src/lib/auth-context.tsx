@@ -157,6 +157,7 @@ export function useAuth() {
 
 export function hasActiveAccess(profile: UserProfile | null): boolean {
   if (!profile) return false;
+  if (profile.isAdmin) return true; // CEO / admin — no limits
   if (profile.subscriptionStatus === "active") return true;
   if (profile.subscriptionStatus === "trial" && profile.trialEndsAt > Date.now()) return true;
   return false;
