@@ -16,10 +16,25 @@ export const generateDocument = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
+      const fieldLines = Object.entries(data.fields || {})
+        .map(([k, v]) => `- ${k}: ${v}`)
+        .join("\n");
+      const prompt =
+        `You are NexDocs, drafting professional South African business documents. ` +
+        `Include parties, date, ZAR amounts, VAT clause where relevant, and SA legal references (POPIA, BCEA, LRA) where appropriate.\n\n` +
+        `Company: ${data.company}\nDocument type: ${data.documentType}\n\nFields:\n${fieldLines || "(none provided)"}`;
+
+      const payload = {
+        prompt,
+        company: data.company,
+        documentType: data.documentType,
+        fields: data.fields ?? {},
+      };
+
       const res = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const text = await res.text();
