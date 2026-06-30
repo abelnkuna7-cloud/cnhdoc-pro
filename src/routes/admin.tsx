@@ -77,9 +77,38 @@ function Admin() {
   if (loading || !profile) return <div className="px-4 py-20 text-center text-muted-foreground">Loading…</div>;
   if (!profile.isAdmin) return null;
 
+  const totalUsers = users.length;
+  const activeSubs = users.filter((u) => u.subscriptionStatus === "active").length;
+  const trialing = users.filter((u) => (u.subscriptionStatus ?? "trial") === "trial").length;
+  const mrr = activeSubs * 99;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="font-display text-3xl text-gold-gradient mb-6">Admin · Users</h1>
+      <div className="mb-6">
+        <div className="text-xs uppercase tracking-wider text-gold">Cossa Nexus Holdings</div>
+        <h1 className="font-display text-3xl text-gold-gradient">CEO Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Signed in as {profile.email} · Unlimited access</p>
+      </div>
+      {!busy && !error && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+            <div className="text-xs text-muted-foreground">Total users</div>
+            <div className="font-display text-2xl text-foreground">{totalUsers}</div>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+            <div className="text-xs text-muted-foreground">Active subscribers</div>
+            <div className="font-display text-2xl text-gold">{activeSubs}</div>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+            <div className="text-xs text-muted-foreground">On trial</div>
+            <div className="font-display text-2xl text-foreground">{trialing}</div>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+            <div className="text-xs text-muted-foreground">MRR</div>
+            <div className="font-display text-2xl text-gold-gradient">R{mrr.toLocaleString()}</div>
+          </div>
+        </div>
+      )}
       {busy && <div className="text-muted-foreground">Loading users…</div>}
       {error && <div className="text-destructive">{error}</div>}
       {!busy && !error && (
