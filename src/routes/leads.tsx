@@ -11,7 +11,7 @@ export const Route = createFileRoute("/leads")({
       {
         name: "description",
         content:
-          "Find business leads across Gauteng — Johannesburg, Pretoria, Sandton, Centurion — powered by Google Places.",
+          "Find business leads across Gauteng — Johannesburg, Pretoria, Sandton, Centurion — powered by OpenStreetMap.",
       },
     ],
   }),
@@ -98,7 +98,7 @@ function LeadsPage() {
         <div>
           <h1 className="font-display text-2xl sm:text-3xl text-foreground">Gauteng Lead Finder</h1>
           <p className="text-sm text-muted-foreground">
-            Search live business listings across Gauteng — powered by Google Places.
+            Search live business listings across Gauteng — powered by OpenStreetMap.
           </p>
         </div>
         <Link to="/dashboard" className="text-sm text-gold hover:underline whitespace-nowrap">
