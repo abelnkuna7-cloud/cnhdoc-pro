@@ -66,7 +66,7 @@ const TYPE_MAP: Record<string, string[]> = {
   estate: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
   agent: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
   agents: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
-  it: ['["office"="it"]', '["shop"="computer"]', '["name"~"\\bIT\\b|tech|technology|computer|digital",i]'],
+  it: ['["office"="it"]', '["shop"="computer"]', '["name"~"information technology|tech|technology|computer|digital",i]'],
   tech: ['["office"="it"]', '["shop"="computer"]', '["name"~"tech|technology|computer|digital",i]'],
   lawyer: ['["office"="lawyer"]', '["name"~"law|attorney|attorneys|legal",i]'],
   lawyers: ['["office"="lawyer"]', '["name"~"law|attorney|attorneys|legal",i]'],
