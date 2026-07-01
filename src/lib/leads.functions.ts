@@ -11,67 +11,91 @@ export type Lead = {
   mapsUrl?: string;
 };
 
-// Gauteng bounding box: south,west,north,east
+// Bounding boxes: south,west,north,east. Smaller city boxes keep Overpass fast
+// and avoid filtering out businesses that do not have addr:city tags.
 const GAUTENG_BBOX = "-26.85,27.65,-25.55,28.90";
 
-// Map common keywords → OSM tag filters
-const TYPE_MAP: Record<string, string> = {
-  restaurant: '["amenity"="restaurant"]',
-  restaurants: '["amenity"="restaurant"]',
-  cafe: '["amenity"="cafe"]',
-  cafes: '["amenity"="cafe"]',
-  bar: '["amenity"="bar"]',
-  bars: '["amenity"="bar"]',
-  hotel: '["tourism"="hotel"]',
-  hotels: '["tourism"="hotel"]',
-  plumber: '["craft"="plumber"]',
-  plumbers: '["craft"="plumber"]',
-  electrician: '["craft"="electrician"]',
-  electricians: '["craft"="electrician"]',
-  builder: '["craft"="builder"]',
-  builders: '["craft"="builder"]',
-  construction: '["office"="construction_company"]',
-  contractor: '["office"="construction_company"]',
-  contractors: '["office"="construction_company"]',
-  cleaning: '["office"="cleaning"]',
-  cleaner: '["office"="cleaning"]',
-  cleaners: '["office"="cleaning"]',
-  estate: '["office"="estate_agent"]',
-  agent: '["office"="estate_agent"]',
-  agents: '["office"="estate_agent"]',
-  it: '["office"="it"]',
-  tech: '["office"="it"]',
-  lawyer: '["office"="lawyer"]',
-  lawyers: '["office"="lawyer"]',
-  accountant: '["office"="accountant"]',
-  accountants: '["office"="accountant"]',
-  shop: '["shop"]',
-  shops: '["shop"]',
-  store: '["shop"]',
-  stores: '["shop"]',
+const PLACE_BBOX: Record<string, string> = {
+  gauteng: GAUTENG_BBOX,
+  johannesburg: "-26.35,27.85,-26.05,28.20",
+  joburg: "-26.35,27.85,-26.05,28.20",
+  jhb: "-26.35,27.85,-26.05,28.20",
+  pretoria: "-25.90,28.05,-25.60,28.40",
+  tshwane: "-25.95,27.90,-25.45,28.55",
+  sandton: "-26.16,28.00,-26.02,28.13",
+  centurion: "-25.95,28.05,-25.78,28.25",
+  midrand: "-26.08,27.98,-25.88,28.18",
+  rosebank: "-26.17,28.02,-26.12,28.06",
+  randburg: "-26.16,27.90,-26.02,28.04",
+  roodepoort: "-26.24,27.78,-26.05,27.98",
+  boksburg: "-26.28,28.18,-26.10,28.35",
+  benoni: "-26.24,28.24,-26.05,28.43",
+  kempton: "-26.16,28.18,-26.00,28.32",
+  germiston: "-26.30,28.08,-26.10,28.25",
+  soweto: "-26.36,27.78,-26.16,27.96",
+  alberton: "-26.36,28.03,-26.20,28.18",
+  vereeniging: "-26.75,27.82,-26.55,28.05",
+  vanderbijlpark: "-26.78,27.75,-26.62,27.92",
+  springs: "-26.34,28.35,-26.16,28.55",
+  krugersdorp: "-26.16,27.68,-26.02,27.88",
 };
 
-function buildFilters(query: string): { tagFilter: string; nameClause: string } {
-  const lower = query.toLowerCase();
-  let tagFilter = "";
-  for (const key of Object.keys(TYPE_MAP)) {
-    if (new RegExp(`\\b${key}\\b`).test(lower)) {
-      tagFilter = TYPE_MAP[key];
-      break;
-    }
-  }
-  // Extract "in <place>" as a name hint
+// Map common keywords → one or more OSM filters. OSM data is inconsistent,
+// so each business type includes practical alternatives that appear in SA.
+const TYPE_MAP: Record<string, string[]> = {
+  restaurant: ['["amenity"="restaurant"]', '["amenity"="fast_food"]'],
+  restaurants: ['["amenity"="restaurant"]', '["amenity"="fast_food"]'],
+  cafe: ['["amenity"="cafe"]'],
+  cafes: ['["amenity"="cafe"]'],
+  bar: ['["amenity"="bar"]', '["amenity"="pub"]'],
+  bars: ['["amenity"="bar"]', '["amenity"="pub"]'],
+  hotel: ['["tourism"="hotel"]', '["tourism"="guest_house"]'],
+  hotels: ['["tourism"="hotel"]', '["tourism"="guest_house"]'],
+  plumber: ['["craft"="plumber"]', '["name"~"plumb|plumber|plumbing",i]'],
+  plumbers: ['["craft"="plumber"]', '["name"~"plumb|plumber|plumbing",i]'],
+  electrician: ['["craft"="electrician"]', '["name"~"electric|electrical",i]'],
+  electricians: ['["craft"="electrician"]', '["name"~"electric|electrical",i]'],
+  builder: ['["craft"="builder"]', '["shop"="hardware"]', '["name"~"builder|building|construction|contractor",i]'],
+  builders: ['["craft"="builder"]', '["shop"="hardware"]', '["name"~"builder|building|construction|contractor",i]'],
+  construction: ['["office"="construction_company"]', '["craft"="builder"]', '["shop"="hardware"]', '["name"~"construction|builder|building|contractor|cashbuild",i]'],
+  contractor: ['["office"="construction_company"]', '["craft"="builder"]', '["name"~"contractor|construction|builder",i]'],
+  contractors: ['["office"="construction_company"]', '["craft"="builder"]', '["name"~"contractor|construction|builder",i]'],
+  cleaning: ['["office"="cleaning"]', '["name"~"clean|cleaning|hygiene",i]'],
+  cleaner: ['["office"="cleaning"]', '["name"~"clean|cleaning|hygiene",i]'],
+  cleaners: ['["office"="cleaning"]', '["name"~"clean|cleaning|hygiene",i]'],
+  estate: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
+  agent: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
+  agents: ['["office"="estate_agent"]', '["name"~"estate|property|properties|realty",i]'],
+  it: ['["office"="it"]', '["shop"="computer"]', '["name"~"\\bIT\\b|tech|technology|computer|digital",i]'],
+  tech: ['["office"="it"]', '["shop"="computer"]', '["name"~"tech|technology|computer|digital",i]'],
+  lawyer: ['["office"="lawyer"]', '["name"~"law|attorney|attorneys|legal",i]'],
+  lawyers: ['["office"="lawyer"]', '["name"~"law|attorney|attorneys|legal",i]'],
+  accountant: ['["office"="accountant"]', '["name"~"account|accounting|tax",i]'],
+  accountants: ['["office"="accountant"]', '["name"~"account|accounting|tax",i]'],
+  shop: ['["shop"]'],
+  shops: ['["shop"]'],
+  store: ['["shop"]'],
+  stores: ['["shop"]'],
+};
+
+function escapeOverpassRegex(value: string) {
+  return value.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&").replace(/\s+/g, ".*");
+}
+
+function buildFilters(query: string): { tagFilters: string[]; bbox: string } {
+  const lower = query.toLowerCase().trim();
   const inMatch = lower.match(/\bin\s+([a-z\s]+)$/);
   const place = inMatch?.[1]?.trim();
-  const nameClause = place
-    ? `["addr:city"~"${place}",i]`
-    : "";
-  // If no tag matched, fall back to name search
-  if (!tagFilter) {
-    const q = query.replace(/\s+in\s+.+$/i, "").trim();
-    tagFilter = `["name"~"${q}",i]`;
+  const bbox = place ? (PLACE_BBOX[place] ?? GAUTENG_BBOX) : GAUTENG_BBOX;
+
+  for (const key of Object.keys(TYPE_MAP)) {
+    if (new RegExp(`\\b${key}\\b`).test(lower)) {
+      return { tagFilters: TYPE_MAP[key], bbox };
+    }
   }
-  return { tagFilter, nameClause };
+
+  const q = query.replace(/\s+in\s+.+$/i, "").trim();
+  return { tagFilters: [`["name"~"${escapeOverpassRegex(q)}",i]`], bbox };
 }
 
 export const searchLeads = createServerFn({ method: "POST" })
@@ -79,16 +103,19 @@ export const searchLeads = createServerFn({ method: "POST" })
     z.object({ query: z.string().min(1).max(200) }).parse(data),
   )
   .handler(async ({ data }) => {
-    const { tagFilter, nameClause } = buildFilters(data.query);
+    const { tagFilters, bbox } = buildFilters(data.query);
     const requireName = '["name"]';
+
+    const selectors = tagFilters
+      .flatMap((tagFilter) => ["node", "way", "relation"].map((kind) => `  ${kind}${tagFilter}${requireName}(${bbox});`))
+      .join("\n");
 
     const overpassQuery = `
 [out:json][timeout:25];
 (
-  node${tagFilter}${nameClause}${requireName}(${GAUTENG_BBOX});
-  way${tagFilter}${nameClause}${requireName}(${GAUTENG_BBOX});
+${selectors}
 );
-out tags center 30;
+out tags center 80;
 `.trim();
 
     const MIRRORS = [
