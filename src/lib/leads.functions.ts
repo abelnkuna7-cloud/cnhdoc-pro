@@ -183,48 +183,6 @@ out tags center 30;
       })
       .filter((l): l is Lead => l !== null);
 
-    const _unused_original = (json.elements ?? [])
-      .map((el) => {
-        const t = el.tags ?? {};
-        const name = t.name;
-        if (!name) return null;
-
-        const lat = el.lat ?? el.center?.lat;
-        const lon = el.lon ?? el.center?.lon;
-
-        const addressParts = [
-          t["addr:housenumber"],
-          t["addr:street"],
-          t["addr:suburb"],
-          t["addr:city"],
-          t["addr:postcode"],
-        ].filter(Boolean);
-
-        const address = addressParts.length ? addressParts.join(", ") : undefined;
-
-        const typeLabel =
-          t.amenity ||
-          t.shop ||
-          t.craft ||
-          t.office ||
-          t.tourism ||
-          t.leisure ||
-          undefined;
-
-        return {
-          id: `${el.type}/${el.id}`,
-          name,
-          address,
-          phone: t.phone || t["contact:phone"],
-          website: t.website || t["contact:website"],
-          type: typeLabel ? typeLabel.replace(/_/g, " ") : undefined,
-          mapsUrl:
-            lat != null && lon != null
-              ? `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`
-              : undefined,
-        } satisfies Lead;
-      })
-      .filter((l): l is Lead => l !== null);
 
     const seen = new Set<string>();
     const dedupedLeads = leads
