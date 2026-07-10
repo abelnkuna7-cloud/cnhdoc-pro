@@ -120,12 +120,22 @@ function Dashboard() {
 
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Link
+          to="/assistant"
+          className="rounded-xl border border-gold/60 bg-card/70 p-4 hover:border-gold transition flex items-center justify-between"
+        >
+          <div>
+            <div className="font-display text-lg text-foreground">AI Assistant</div>
+            <div className="text-xs text-muted-foreground">Chat with NexDocs AI — draft any document or get SA business advice.</div>
+          </div>
+          <span className="text-gold">→</span>
+        </Link>
+        <Link
           to="/leads"
           className="rounded-xl border border-gold/40 bg-card/70 p-4 hover:border-gold transition flex items-center justify-between"
         >
           <div>
             <div className="font-display text-lg text-foreground">Gauteng Lead Finder</div>
-            <div className="text-xs text-muted-foreground">Find business leads across Gauteng — live Google data.</div>
+            <div className="text-xs text-muted-foreground">Find business leads across Gauteng — live OpenStreetMap data.</div>
           </div>
           <span className="text-gold">→</span>
         </Link>

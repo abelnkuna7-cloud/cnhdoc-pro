@@ -20,25 +20,25 @@ function Landing() {
   return (
     <div className="mx-auto max-w-6xl px-4">
       <section className="py-14 sm:py-24 text-center">
-        <img src={CNH_LOGO} alt="Cossa Nexus Holdings" className="mx-auto h-24 w-24 rounded-2xl object-cover shadow-2xl shadow-black/40" />
-        <h1 className="mt-8 font-display text-4xl sm:text-6xl leading-tight">
-          <span className="text-gold-gradient">AI Business Documents</span>
+        <img src={CNH_LOGO} alt="NexDocs AI" className="mx-auto h-24 w-24 rounded-2xl object-cover shadow-2xl shadow-black/40" />
+        <div className="mt-6 text-xs uppercase tracking-[0.2em] text-gold">NexDocs AI</div>
+        <h1 className="mt-3 font-display text-4xl sm:text-6xl leading-tight">
+          <span className="text-gold-gradient">South Africa's</span>
           <br />
-          <span className="text-foreground">for South Africa</span>
+          <span className="text-foreground">AI Business Platform</span>
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base sm:text-lg text-muted-foreground">
-          Contracts, quotes, HR letters, legal forms — generated in seconds.
-          Built for the Cossa Nexus group and every SA business.
+          Draft contracts, quotes, invoices, HR letters and POPIA policies in seconds — plus a ChatGPT-style AI assistant trained for South African business, law and compliance.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
           <Link to="/auth" className="rounded-lg bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground shadow-lg">
             Start 10-day free trial
           </Link>
-          <Link to="/auth" className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground">
-            Sign in
+          <Link to="/assistant" className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground">
+            Try the AI Assistant
           </Link>
         </div>
-        <p className="mt-4 text-xs text-muted-foreground">Then just R99/month. Cancel anytime.</p>
+        <p className="mt-4 text-xs text-muted-foreground">Then just R99/month. No credit card required. Cancel anytime.</p>
       </section>
 
       <section className="pb-20">

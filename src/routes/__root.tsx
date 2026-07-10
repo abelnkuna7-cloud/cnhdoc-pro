@@ -133,14 +133,15 @@ function Header() {
           <img src={CNH_LOGO} alt="Cossa Nexus Holdings" className="h-9 w-9 rounded-md object-cover" />
           <span className="font-display text-lg text-gold-gradient">NexDocs</span>
         </Link>
-        <nav className="flex items-center gap-2 text-sm">
+        <nav className="flex items-center gap-1 sm:gap-2 text-sm">
           {user ? (
             <>
-              <Link to="/dashboard" className="px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Dashboard</Link>
+              <Link to="/dashboard" className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Dashboard</Link>
+              <Link to="/assistant" className="px-2 sm:px-3 py-1.5 rounded-md text-gold hover:text-gold-gradient">AI</Link>
               {profile?.isAdmin && (
-                <Link to="/admin" className="px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Admin</Link>
+                <Link to="/admin" className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Admin</Link>
               )}
-              <button onClick={() => signOut()} className="px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Sign out</button>
+              <button onClick={() => signOut()} className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Sign out</button>
             </>
           ) : (
             <Link to="/auth" className="rounded-md bg-gold-gradient px-4 py-2 font-semibold text-primary-foreground">Sign in</Link>
@@ -148,6 +149,29 @@ function Header() {
         </nav>
       </div>
     </header>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="mt-16 border-t border-border/60 bg-navy-deep/60 backdrop-blur">
+      <div className="mx-auto max-w-6xl px-4 py-8 grid gap-4 sm:grid-cols-3 text-sm text-muted-foreground">
+        <div>
+          <div className="font-display text-lg text-gold-gradient">NexDocs AI</div>
+          <div className="text-xs mt-1">South Africa's AI Business Platform</div>
+        </div>
+        <div className="sm:text-center">
+          <Link to="/" className="hover:text-foreground">Home</Link>
+          <span className="mx-2">·</span>
+          <Link to="/auth" className="hover:text-foreground">Sign in</Link>
+          <span className="mx-2">·</span>
+          <Link to="/subscribe" className="hover:text-foreground">Pricing</Link>
+        </div>
+        <div className="sm:text-right text-xs">
+          © {new Date().getFullYear()} Developed by Cossa Nexus Holdings (Pty) Ltd.
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -161,6 +185,7 @@ function RootComponent() {
           <main className="flex-1">
             <Outlet />
           </main>
+          <Footer />
           <WhatsAppButton />
         </div>
       </AuthProvider>
