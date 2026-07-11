@@ -141,7 +141,8 @@ function Dashboard() {
         </Link>
       </div>
 
-      <h2 className="font-display text-2xl text-foreground mb-3">Choose a company</h2>
+      <h2 className="font-display text-2xl text-foreground mb-1">Choose an Industry</h2>
+      <p className="text-sm text-muted-foreground mb-3">Pick the industry closest to your business — templates are tuned for South Africa.</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {COMPANIES.map((c) => (
           <button
