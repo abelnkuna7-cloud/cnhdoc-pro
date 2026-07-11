@@ -29,6 +29,7 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
           model: "google/gemini-2.5-flash",
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
+            ...(data.businessHint ? [{ role: "system" as const, content: data.businessHint }] : []),
             ...data.messages.map((m) => ({ role: m.role, content: m.content })),
           ],
         }),
