@@ -153,22 +153,62 @@ function Header() {
 }
 
 function Footer() {
+  const year = new Date().getFullYear();
+  const col = (title: string, links: { label: string; to?: string; href?: string }[]) => (
+    <div>
+      <div className="font-display text-sm text-gold mb-3">{title}</div>
+      <ul className="space-y-2 text-sm text-muted-foreground">
+        {links.map((l) =>
+          l.to ? (
+            <li key={l.label}><Link to={l.to} className="hover:text-foreground">{l.label}</Link></li>
+          ) : (
+            <li key={l.label}><a href={l.href} className="hover:text-foreground">{l.label}</a></li>
+          )
+        )}
+      </ul>
+    </div>
+  );
   return (
     <footer className="mt-16 border-t border-border/60 bg-navy-deep/60 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-8 grid gap-4 sm:grid-cols-3 text-sm text-muted-foreground">
-        <div>
-          <div className="font-display text-lg text-gold-gradient">NexDocs AI</div>
-          <div className="text-xs mt-1">South Africa's AI Business Platform</div>
+      <div className="mx-auto max-w-6xl px-4 py-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <div className="flex items-center gap-2">
+            <img src={CNH_LOGO} alt="NexDocs AI" className="h-9 w-9 rounded-md object-cover" />
+            <div className="font-display text-lg text-gold-gradient">NexDocs AI</div>
+          </div>
+          <div className="mt-2 text-sm text-muted-foreground max-w-sm">
+            South Africa's AI Business Platform. Contracts, quotes, HR, compliance and business advice — powered by AI.
+          </div>
+          <div className="mt-4 flex gap-3 text-muted-foreground">
+            <a href="#" aria-label="LinkedIn" className="hover:text-foreground">in</a>
+            <a href="#" aria-label="X" className="hover:text-foreground">𝕏</a>
+            <a href="#" aria-label="Facebook" className="hover:text-foreground">f</a>
+            <a href="#" aria-label="Instagram" className="hover:text-foreground">ig</a>
+          </div>
         </div>
-        <div className="sm:text-center">
-          <Link to="/" className="hover:text-foreground">Home</Link>
-          <span className="mx-2">·</span>
-          <Link to="/auth" className="hover:text-foreground">Sign in</Link>
-          <span className="mx-2">·</span>
-          <Link to="/subscribe" className="hover:text-foreground">Pricing</Link>
-        </div>
-        <div className="sm:text-right text-xs">
-          © {new Date().getFullYear()} Developed by Cossa Nexus Holdings (Pty) Ltd.
+        {col("Product", [
+          { label: "Features", to: "/" },
+          { label: "Pricing", to: "/subscribe" },
+          { label: "AI Assistant", to: "/assistant" },
+          { label: "Dashboard", to: "/dashboard" },
+        ])}
+        {col("Company", [
+          { label: "About", to: "/" },
+          { label: "Blog", href: "#" },
+          { label: "Contact", href: "#" },
+          { label: "Support", href: "#" },
+        ])}
+        {col("Legal", [
+          { label: "Privacy Policy", href: "#" },
+          { label: "Terms", href: "#" },
+          { label: "POPIA", href: "#" },
+          { label: "Documentation", href: "#" },
+        ])}
+      </div>
+      <div className="border-t border-border/60">
+        <div className="mx-auto max-w-6xl px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div>© {year} NexDocs AI. All rights reserved.</div>
+          <div>Developed by <span className="text-gold">Cossa Nexus Holdings (Pty) Ltd</span></div>
         </div>
       </div>
     </footer>
