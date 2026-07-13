@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import jsPDF from "jspdf";
 import { CNH_LOGO } from "@/lib/companies";
+import { useAuth } from "@/lib/auth-context";
+import {
+  DOCUMENT_TEMPLATES,
+  DOCUMENT_CATEGORIES,
+  type DocumentTemplate,
+  type DocumentCategory,
+} from "@/lib/document-templates";
 
 export const Route = createFileRoute("/")({
   head: () => ({
