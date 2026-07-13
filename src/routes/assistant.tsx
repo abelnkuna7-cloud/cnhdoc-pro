@@ -194,6 +194,21 @@ function Assistant() {
     setConversations(list);
     setActiveId(list[0]?.id ?? null);
     setMemory(loadBusinessMemory());
+    // Pre-seed input if arriving from a template card (?template=...)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tid = params.get("template");
+      if (tid) {
+        import("@/lib/document-templates").then(({ getTemplateById }) => {
+          const tpl = getTemplateById(tid);
+          if (tpl) setInput(tpl.aiPrompt);
+        });
+        // clean the URL so refresh doesn't re-seed
+        const url = new URL(window.location.href);
+        url.searchParams.delete("template");
+        window.history.replaceState({}, "", url.toString());
+      }
+    }
   }, []);
 
   useEffect(() => {
