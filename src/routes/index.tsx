@@ -115,20 +115,6 @@ const INDUSTRIES = [
   { icon: "⚖️", name: "Legal & HR", desc: "POPIA, BCEA, LRA, contracts.", count: 26 },
 ];
 
-const DOC_GALLERY = [
-  "Employment Contract",
-  "Quotation",
-  "Invoice",
-  "Service Level Agreement",
-  "Risk Assessment",
-  "Method Statement",
-  "Disciplinary Notice",
-  "POPIA Policy",
-  "Meeting Minutes",
-  "Construction Safety File",
-  "Tender Document",
-  "Company Policy",
-];
 
 const COMPARE = {
   traditional: [
