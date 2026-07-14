@@ -35,13 +35,25 @@ function Dashboard() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [convs, setConvs] = useState<Conversation[]>([]);
+  const [mem, setMem] = useState<BusinessMemory>({});
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user, navigate]);
 
+  useEffect(() => {
+    setConvs(loadConversations());
+    setMem(loadBusinessMemory());
+  }, []);
+
   const company = useMemo(() => COMPANIES.find((c) => c.id === companyId) ?? null, [companyId]);
   const active = hasActiveAccess(profile);
   const dl = daysLeft(profile);
+  const recent = useMemo(() => [...convs].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4), [convs]);
+  const popularTemplates = useMemo(() => DOCUMENT_TEMPLATES.filter((t) => t.popular).slice(0, 6), []);
+  const memoryFilled = Object.values(mem).filter(Boolean).length;
+  const memoryTotal = 11;
 
   if (loading || !user) {
     return <div className="mx-auto max-w-2xl px-4 py-20 text-center text-muted-foreground">Loading…</div>;
