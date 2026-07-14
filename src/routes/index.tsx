@@ -141,12 +141,13 @@ const COMPARE = {
   ],
 };
 
-const TESTIMONIALS = [
-  { name: "Sipho M.", role: "Construction Company, Gauteng", quote: "We produce full safety files and tender packs in a morning instead of a week." },
-  { name: "Nadia K.", role: "Cleaning Company, Cape Town", quote: "The SLA and inspection templates alone paid for a year of subscription." },
-  { name: "Johan v.d.M.", role: "Business Consultant", quote: "The AI assistant knows SA context — POPIA, BCEA, VAT — it just gets it." },
-  { name: "Thandi N.", role: "Restaurant Owner, Durban", quote: "Quotes and invoices look premium. Clients pay faster." },
-  { name: "Ravi P.", role: "Tech Startup CEO", quote: "Contracts, NDAs and SOWs in minutes. Runs on any device." },
+const USE_CASES = [
+  { industry: "Construction", icon: "🏗️", title: "Tender pack in a morning", body: "A Gauteng contractor uses NexDocs AI to assemble CIDB tender responses, safety files, method statements and BOQ cover letters — cutting a week of admin down to a single morning." },
+  { industry: "Cleaning & Facilities", icon: "🧽", title: "SLA + inspection templates", body: "A Cape Town cleaning business generates SLAs, site inspection reports and incident forms on the go — clients sign the same day and invoices go out that afternoon." },
+  { industry: "HR & Compliance", icon: "📋", title: "POPIA & BCEA-ready HR", body: "A business consultant drafts employment contracts, disciplinary notices and POPIA privacy notices with correct SA references baked in — no legal template shopping." },
+  { industry: "Hospitality", icon: "🍽️", title: "Quotes clients pay faster", body: "A Durban restaurant owner sends premium catering quotations and event booking confirmations that look enterprise-grade — average payment time drops noticeably." },
+  { industry: "Technology", icon: "💻", title: "NDAs, SOWs and MSAs in minutes", body: "A tech founder produces mutual NDAs, statements of work and SaaS subscription agreements from a phone — closing deals without waiting for a lawyer." },
+  { industry: "Retail & Logistics", icon: "🚚", title: "Invoices with VAT done right", body: "SA retailers and couriers issue compliant tax invoices with 15% VAT, POPIA-ready customer notices, and returns forms — SARS-friendly out of the box." },
 ];
 
 const PLANS = [
