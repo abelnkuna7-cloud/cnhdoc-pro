@@ -181,6 +181,8 @@ function Landing() {
       <HowItWorks />
       <DocumentGallery />
       <WhyChoose />
+      <Security />
+      <Integrations />
       <Testimonials />
       <Pricing />
       <FAQ />
