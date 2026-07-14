@@ -181,6 +181,8 @@ function Landing() {
       <HowItWorks />
       <DocumentGallery />
       <WhyChoose />
+      <Security />
+      <Integrations />
       <Testimonials />
       <Pricing />
       <FAQ />
@@ -853,6 +855,90 @@ function CTA() {
           </Link>
         </div>
       </div>
+    </section>
+  );
+}
+
+const SECURITY_ITEMS = [
+  { title: "SSL / TLS Encryption", body: "All traffic encrypted end-to-end with modern TLS. Your documents never travel in the clear." },
+  { title: "Secure Cloud Storage", body: "Documents stored in encrypted, access-controlled cloud infrastructure with per-user isolation." },
+  { title: "Daily Backups", body: "Automated daily backups with point-in-time recovery so your business data is never lost." },
+  { title: "Audit Logs", body: "Every generate, download and share action is logged for compliance and internal review." },
+  { title: "Role-Based Permissions", body: "Owner, admin and staff roles with granular access — coming with team workspaces." },
+  { title: "Secure Authentication", body: "Email + password with hardened session management. SSO and 2FA on the enterprise roadmap." },
+  { title: "POPIA Compliant", body: "Built to South Africa's Protection of Personal Information Act — lawful processing by design." },
+  { title: "Privacy First", body: "We never sell your data. Your documents and business memory belong to you, always." },
+  { title: "Enterprise-Grade Infrastructure", body: "Runs on globally distributed edge infrastructure with 99.9% target uptime." },
+];
+
+function Security() {
+  return (
+    <section id="security" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <SectionHeader eyebrow="Enterprise Security" title="Built to protect your business" subtitle="Bank-grade security and POPIA-ready compliance — so you can generate, store and share business documents with confidence." />
+      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {SECURITY_ITEMS.map((s) => (
+          <div key={s.title} className="rounded-xl border border-border/60 bg-card/70 p-5 hover:border-gold/60 transition">
+            <div className="h-10 w-10 rounded-lg bg-gold-gradient flex items-center justify-center text-primary-foreground font-display">🔒</div>
+            <div className="mt-3 font-display text-lg text-foreground">{s.title}</div>
+            <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs">
+        {["POPIA Ready", "SSL Encrypted", "Daily Backups", "SA-Hosted Ready", "Audit Logged"].map((b) => (
+          <span key={b} className="rounded-full border border-gold/40 px-3 py-1 text-gold">{b}</span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+type Integration = { name: string; category: string; status: "Available" | "Coming Soon"; icon: string };
+
+const INTEGRATIONS: Integration[] = [
+  { name: "Gmail", category: "Email", status: "Coming Soon", icon: "✉️" },
+  { name: "Outlook", category: "Email", status: "Coming Soon", icon: "📧" },
+  { name: "Microsoft 365", category: "Productivity", status: "Coming Soon", icon: "🪟" },
+  { name: "Google Drive", category: "Storage", status: "Coming Soon", icon: "📁" },
+  { name: "OneDrive", category: "Storage", status: "Coming Soon", icon: "☁️" },
+  { name: "Dropbox", category: "Storage", status: "Coming Soon", icon: "📦" },
+  { name: "WhatsApp Business", category: "Messaging", status: "Coming Soon", icon: "💬" },
+  { name: "PayFast", category: "Payments", status: "Available", icon: "💳" },
+  { name: "Stripe", category: "Payments", status: "Coming Soon", icon: "💠" },
+  { name: "Ozow", category: "Payments", status: "Coming Soon", icon: "⚡" },
+  { name: "Yoco", category: "Payments", status: "Coming Soon", icon: "🟢" },
+  { name: "Xero", category: "Accounting", status: "Coming Soon", icon: "📊" },
+  { name: "Sage", category: "Accounting", status: "Coming Soon", icon: "📗" },
+  { name: "QuickBooks", category: "Accounting", status: "Coming Soon", icon: "📘" },
+];
+
+function Integrations() {
+  return (
+    <section id="integrations" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <SectionHeader eyebrow="Integrations" title="Connect the tools you already use" subtitle="NexDocs AI plugs into the email, payments, storage and accounting tools South African businesses run on." />
+      <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {INTEGRATIONS.map((i) => (
+          <div key={i.name} className="group rounded-xl border border-border/60 bg-card/70 p-4 hover:border-gold/60 transition relative">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-navy-deep/60 flex items-center justify-center text-xl">{i.icon}</div>
+              <div className="min-w-0">
+                <div className="font-semibold text-foreground truncate">{i.name}</div>
+                <div className="text-[11px] text-muted-foreground">{i.category}</div>
+              </div>
+            </div>
+            <div className="mt-3">
+              {i.status === "Available" ? (
+                <span className="text-[11px] rounded-full bg-gold-gradient px-2 py-0.5 font-semibold text-primary-foreground">Available</span>
+              ) : (
+                <span className="text-[11px] rounded-full border border-gold/40 px-2 py-0.5 text-gold">Coming Soon</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        Need another integration? <Link to="/assistant" className="text-gold hover:underline">Tell the AI Assistant</Link> and we'll prioritise it.
+      </p>
     </section>
   );
 }
