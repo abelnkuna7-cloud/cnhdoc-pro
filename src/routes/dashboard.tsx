@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useAuth, hasActiveAccess, daysLeft } from "@/lib/auth-context";
 import { COMPANIES } from "@/lib/companies";
 import { generateDocument } from "@/lib/generate-doc.functions";
+import { loadConversations, loadBusinessMemory, type Conversation, type BusinessMemory } from "@/lib/assistant-storage";
+import { DOCUMENT_TEMPLATES } from "@/lib/document-templates";
 import jsPDF from "jspdf";
 
 export const Route = createFileRoute("/dashboard")({
