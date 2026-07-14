@@ -141,12 +141,13 @@ const COMPARE = {
   ],
 };
 
-const TESTIMONIALS = [
-  { name: "Sipho M.", role: "Construction Company, Gauteng", quote: "We produce full safety files and tender packs in a morning instead of a week." },
-  { name: "Nadia K.", role: "Cleaning Company, Cape Town", quote: "The SLA and inspection templates alone paid for a year of subscription." },
-  { name: "Johan v.d.M.", role: "Business Consultant", quote: "The AI assistant knows SA context — POPIA, BCEA, VAT — it just gets it." },
-  { name: "Thandi N.", role: "Restaurant Owner, Durban", quote: "Quotes and invoices look premium. Clients pay faster." },
-  { name: "Ravi P.", role: "Tech Startup CEO", quote: "Contracts, NDAs and SOWs in minutes. Runs on any device." },
+const USE_CASES = [
+  { industry: "Construction", icon: "🏗️", title: "Tender pack in a morning", body: "A Gauteng contractor uses NexDocs AI to assemble CIDB tender responses, safety files, method statements and BOQ cover letters — cutting a week of admin down to a single morning." },
+  { industry: "Cleaning & Facilities", icon: "🧽", title: "SLA + inspection templates", body: "A Cape Town cleaning business generates SLAs, site inspection reports and incident forms on the go — clients sign the same day and invoices go out that afternoon." },
+  { industry: "HR & Compliance", icon: "📋", title: "POPIA & BCEA-ready HR", body: "A business consultant drafts employment contracts, disciplinary notices and POPIA privacy notices with correct SA references baked in — no legal template shopping." },
+  { industry: "Hospitality", icon: "🍽️", title: "Quotes clients pay faster", body: "A Durban restaurant owner sends premium catering quotations and event booking confirmations that look enterprise-grade — average payment time drops noticeably." },
+  { industry: "Technology", icon: "💻", title: "NDAs, SOWs and MSAs in minutes", body: "A tech founder produces mutual NDAs, statements of work and SaaS subscription agreements from a phone — closing deals without waiting for a lawyer." },
+  { industry: "Retail & Logistics", icon: "🚚", title: "Invoices with VAT done right", body: "SA retailers and couriers issue compliant tax invoices with 15% VAT, POPIA-ready customer notices, and returns forms — SARS-friendly out of the box." },
 ];
 
 const PLANS = [
@@ -734,22 +735,20 @@ function Testimonials() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
-        eyebrow="Loved by SA businesses"
-        title="What early customers say"
-        subtitle="Sample testimonials shown until verified customer reviews are collected."
+        eyebrow="Real-world use cases"
+        title="How South African businesses use NexDocs AI"
+        subtitle="Real workflows across construction, cleaning, HR, hospitality, technology, retail and logistics. Verified customer stories will replace these as they come in."
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TESTIMONIALS.map((t) => (
-          <figure key={t.name} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur">
-            <blockquote className="text-sm text-foreground">"{t.quote}"</blockquote>
-            <figcaption className="mt-4 text-xs text-muted-foreground">
-              <span className="text-gold">{t.name}</span> — {t.role}
-            </figcaption>
-          </figure>
+        {USE_CASES.map((u) => (
+          <div key={u.title} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur hover:border-gold/60 transition">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-gold">
+              <span className="text-lg">{u.icon}</span> {u.industry}
+            </div>
+            <div className="mt-2 font-display text-lg text-foreground">{u.title}</div>
+            <p className="mt-2 text-sm text-muted-foreground">{u.body}</p>
+          </div>
         ))}
-      </div>
-      <div className="mt-4 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
-        Sample content
       </div>
     </section>
   );
