@@ -155,7 +155,6 @@ function Dashboard() {
         </Link>
       </div>
 
-      </div>
 
       <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
         <div className="rounded-xl border border-border/60 bg-card/70 p-4 lg:col-span-2">
