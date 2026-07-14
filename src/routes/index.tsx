@@ -735,22 +735,20 @@ function Testimonials() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
-        eyebrow="Loved by SA businesses"
-        title="What early customers say"
-        subtitle="Sample testimonials shown until verified customer reviews are collected."
+        eyebrow="Real-world use cases"
+        title="How South African businesses use NexDocs AI"
+        subtitle="Real workflows across construction, cleaning, HR, hospitality, technology, retail and logistics. Verified customer stories will replace these as they come in."
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {TESTIMONIALS.map((t) => (
-          <figure key={t.name} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur">
-            <blockquote className="text-sm text-foreground">"{t.quote}"</blockquote>
-            <figcaption className="mt-4 text-xs text-muted-foreground">
-              <span className="text-gold">{t.name}</span> — {t.role}
-            </figcaption>
-          </figure>
+        {USE_CASES.map((u) => (
+          <div key={u.title} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur hover:border-gold/60 transition">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-gold">
+              <span className="text-lg">{u.icon}</span> {u.industry}
+            </div>
+            <div className="mt-2 font-display text-lg text-foreground">{u.title}</div>
+            <p className="mt-2 text-sm text-muted-foreground">{u.body}</p>
+          </div>
         ))}
-      </div>
-      <div className="mt-4 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
-        Sample content
       </div>
     </section>
   );
