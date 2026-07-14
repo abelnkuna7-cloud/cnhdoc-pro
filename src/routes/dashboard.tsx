@@ -197,20 +197,19 @@ function Dashboard() {
       <div className="mb-6 rounded-xl border border-border/60 bg-card/70 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="font-display text-lg text-foreground">Popular templates</div>
-          <Link to="/" hash="documents" className="text-xs text-gold hover:underline">Browse all →</Link>
+          <a href="/#documents" className="text-xs text-gold hover:underline">Browse all →</a>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           {popularTemplates.map((t) => (
-            <Link
+            <a
               key={t.id}
-              to="/assistant"
-              search={{ template: t.id }}
-              className="rounded-lg border border-border/60 bg-background/40 p-3 text-left hover:border-gold/60 transition"
+              href={`/assistant?template=${encodeURIComponent(t.id)}`}
+              className="rounded-lg border border-border/60 bg-background/40 p-3 text-left hover:border-gold/60 transition block"
             >
               <div className="text-2xl">{t.icon}</div>
               <div className="mt-1 text-xs font-semibold text-foreground line-clamp-2">{t.title}</div>
               <div className="text-[10px] text-muted-foreground">{t.category}</div>
-            </Link>
+            </a>
           ))}
         </div>
       </div>
