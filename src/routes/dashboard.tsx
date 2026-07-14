@@ -155,6 +155,67 @@ function Dashboard() {
         </Link>
       </div>
 
+      </div>
+
+      <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="rounded-xl border border-border/60 bg-card/70 p-4 lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <div className="font-display text-lg text-foreground">Recent conversations</div>
+            <Link to="/assistant" className="text-xs text-gold hover:underline">Open assistant →</Link>
+          </div>
+          {recent.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              No chats yet. <Link to="/assistant" className="text-gold hover:underline">Start your first conversation</Link> with the NexDocs AI Business Assistant.
+            </div>
+          ) : (
+            <ul className="divide-y divide-border/60">
+              {recent.map((c) => (
+                <li key={c.id} className="py-2 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm text-foreground truncate">{c.title}</div>
+                    <div className="text-[11px] text-muted-foreground">{new Date(c.updatedAt).toLocaleString("en-ZA", { dateStyle: "medium", timeStyle: "short" })} · {c.messages.length} messages</div>
+                  </div>
+                  <Link to="/assistant" className="text-xs rounded-full border border-gold/40 px-2.5 py-1 text-gold hover:border-gold">Resume</Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border/60 bg-card/70 p-4">
+          <div className="font-display text-lg text-foreground">Business profile</div>
+          <div className="mt-1 text-xs text-muted-foreground">Fill this once — the AI reuses it in every document.</div>
+          <div className="mt-3 h-2 rounded-full bg-navy-deep/60 overflow-hidden">
+            <div className="h-full bg-gold-gradient" style={{ width: `${Math.round((memoryFilled / memoryTotal) * 100)}%` }} />
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">{memoryFilled} of {memoryTotal} fields complete</div>
+          <Link to="/assistant" className="mt-3 inline-block text-xs rounded-full border border-gold/40 px-3 py-1 text-gold hover:border-gold">
+            {memoryFilled === 0 ? "Set up business memory" : "Update business memory"}
+          </Link>
+        </div>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-border/60 bg-card/70 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-display text-lg text-foreground">Popular templates</div>
+          <Link to="/" hash="documents" className="text-xs text-gold hover:underline">Browse all →</Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {popularTemplates.map((t) => (
+            <Link
+              key={t.id}
+              to="/assistant"
+              search={{ template: t.id }}
+              className="rounded-lg border border-border/60 bg-background/40 p-3 text-left hover:border-gold/60 transition"
+            >
+              <div className="text-2xl">{t.icon}</div>
+              <div className="mt-1 text-xs font-semibold text-foreground line-clamp-2">{t.title}</div>
+              <div className="text-[10px] text-muted-foreground">{t.category}</div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <h2 className="font-display text-2xl text-foreground mb-1">Choose an Industry</h2>
       <p className="text-sm text-muted-foreground mb-3">Pick the industry closest to your business — templates are tuned for South Africa.</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
