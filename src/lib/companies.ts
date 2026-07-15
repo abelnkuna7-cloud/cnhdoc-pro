@@ -1,11 +1,7 @@
-import cnh from "@/assets/cnh-logo.asset.json";
-import construction from "@/assets/construction.asset.json";
-import cfs from "@/assets/cfs.asset.json";
-import store from "@/assets/store.asset.json";
-import tech from "@/assets/tech.asset.json";
-import cuisine from "@/assets/cuisine.asset.json";
+// Company branding configuration
+// Production-ready version using local assets from /public/logos
 
-export const CNH_LOGO = cnh.url;
+export const CNH_LOGO = "/logos/cossa-nexus-holdings-logo.png";
 
 export type Company = {
   id: string;
@@ -20,7 +16,7 @@ export const COMPANIES: Company[] = [
     id: "construction",
     name: "Cossa Construction & DIY",
     tagline: "Your Home, Our Expertise",
-    logo: construction.url,
+    logo: "/logos/cossa-construction-logo.png",
     documents: [
       "Construction Quotation",
       "Building Contract",
@@ -42,7 +38,7 @@ export const COMPANIES: Company[] = [
     id: "facility",
     name: "Cossa Facility Services",
     tagline: "Cleaning & Facility Management",
-    logo: cfs.url,
+    logo: "/logos/cossa-facility-services-logo.png",
     documents: [
       "Cleaning Service Agreement",
       "Site Inspection Report",
@@ -55,14 +51,17 @@ export const COMPANIES: Company[] = [
     id: "store",
     name: "Cossa Store",
     tagline: "Lifestyle & Fashion",
-    logo: store.url,
-    documents: ["Sales Invoice", "Refund / Return Form"],
+    logo: "/logos/cossa-store-logo.png",
+    documents: [
+      "Sales Invoice",
+      "Refund / Return Form",
+    ],
   },
   {
     id: "tech",
     name: "Cossa Tech",
     tagline: "Technology Solutions",
-    logo: tech.url,
+    logo: "/logos/cossa-tech-logo.png",
     documents: [
       "Software Development Quote",
       "SaaS Subscription Agreement",
@@ -77,8 +76,8 @@ export const COMPANIES: Company[] = [
   {
     id: "cuisine",
     name: "Cossa Cuisine",
-    tagline: "We bring your imagination to reality",
-    logo: cuisine.url,
+    tagline: "Professional Catering & Hospitality",
+    logo: "/logos/cossa-cuisin-logo.png",
     documents: [
       "Catering Quotation",
       "Event Booking Confirmation",
@@ -93,7 +92,7 @@ export const COMPANIES: Company[] = [
     id: "legal",
     name: "SA Legal & Labour",
     tagline: "South African Legal & Labour Documents",
-    logo: "",
+    logo: "/logos/eagle.png",
     documents: [
       "Employment Contract (SA)",
       "Independent Contractor Agreement",
