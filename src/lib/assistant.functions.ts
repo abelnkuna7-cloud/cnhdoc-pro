@@ -18,7 +18,7 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
         ...data.messages.map((m) => ({ role: m.role, content: m.content })),
       ];
 
-      const res = await fetch("https://nexdocs-api.cossa.workers.dev", {
+      const res = await fetch("https://nexdocs-api.abelnkuna7.workers.dev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages }),
