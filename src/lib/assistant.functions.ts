@@ -3,11 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 export type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
 
 const SYSTEM_PROMPT =
-  "You are the NexDocs AI Business Assistant — South Africa's AI Business Platform assistant, built by Cossa Nexus Holdings (Pty) Ltd. " +
-  "You help South African business owners generate professional documents (employment contracts, NDAs, quotations, invoices, disciplinary notices, POPIA policies, safety files, method statements, risk assessments, CIDB tender documents, board resolutions, SLAs, HR letters, cleaning contracts, logistics agreements, etc.) and give practical business, HR, sales, marketing, financial, legal, compliance, construction, cleaning, logistics and facilities advice tailored to South Africa. " +
-  "Use ZAR (R) for money, include VAT (15%) where relevant, and reference SA legislation (POPIA, BCEA, LRA, OHSA, CIDB, Companies Act, PAIA, BBBEE) when appropriate. " +
-  "When drafting a document, output a fully structured, PDF-ready document in Markdown with: document title, a document number placeholder, date, 'Prepared for' and 'Prepared by' blocks, numbered clauses/sections, signature blocks for both parties, and a short footer line. " +
-  "Reuse the user's business profile automatically when it is provided. Be concise, professional, and helpful.";
+  "You are the NexDocs AI Business Assistant — South Africa's AI Business Platform assistant, built by Cossa Nexus Holdings (Pty) Ltd. You help South African business owners generate professional documents (employment contracts, NDAs, quotations, invoices, disciplinary notices, POPIA policies, safety files, method statements, risk assessments, CIDB tender documents, board resolutions, SLAs, HR letters, cleaning contracts, logistics agreements, etc.) and give practical business, HR, sales, marketing, financial, legal, compliance, construction, cleaning, logistics and facilities advice tailored to South Africa. Use ZAR (R) for money, include VAT (15%) where relevant, and reference SA legislation (POPIA, BCEA, LRA, OHSA, CIDB, Companies Act, PAIA, BBBEE) when appropriate. When drafting a document, output a fully structured, PDF-ready document in Markdown with: document title, a document number placeholder, date, Prepared for and Prepared by blocks, numbered clauses/sections, signature blocks for both parties, and a short footer line. Reuse the user's business profile automatically when it is provided. Be concise, professional, and helpful.";
 
 export const chatWithAssistant = createServerFn({ method: "POST" })
   .inputValidator((data: { messages: ChatMessage[]; businessHint?: string }) => {
@@ -15,41 +11,31 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
     return data;
   })
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) return { ok: false as const, error: "LOVABLE_API_KEY not configured" };
-
     try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...(data.businessHint ? [{ role: "system" as const, content: data.businessHint }] : []),
+        ...data.messages.map((m) => ({ role: m.role, content: m.content })),
+      ];
+
+      const res = await fetch("https://nexdocs-api.cossa.workers.dev", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": key,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            ...(data.businessHint ? [{ role: "system" as const, content: data.businessHint }] : []),
-            ...data.messages.map((m) => ({ role: m.role, content: m.content })),
-          ],
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
       });
 
-      if (res.status === 429) {
-        return { ok: false as const, error: "Too many requests. Please wait a moment and try again." };
-      }
-      if (res.status === 402) {
-        return { ok: false as const, error: "AI credits exhausted. Please add credits in workspace billing." };
-      }
+      if (res.status === 429) return { ok: false as const, error: "Too many requests. Please wait a moment and try again." };
       if (!res.ok) {
         const text = await res.text();
-        return { ok: false as const, error: `AI gateway error ${res.status}: ${text.slice(0, 200)}` };
+        return { ok: false as const, error: `AI error ${res.status}: ${text.slice(0, 200)}` };
       }
 
       const json = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
+        content?: string;
       };
-      const content = json.choices?.[0]?.message?.content ?? "";
+
+      const content = json.choices?.[0]?.message?.content ?? json.content ?? "";
       if (!content) return { ok: false as const, error: "Empty response from AI" };
       return { ok: true as const, content };
     } catch (e) {
