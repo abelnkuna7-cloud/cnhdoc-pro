@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import jsPDF from "jspdf";
-import { CNH_LOGO } from "@/lib/companies";
+import { NEXDOCS_LOGO } from "@/lib/companies";
 import { useAuth } from "@/lib/auth-context";
 import {
   DOCUMENT_TEMPLATES,
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/")({
           "Run your business smarter with AI. Contracts, quotes, invoices, HR & compliance docs — built for South Africa.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://nexdoc-pro-v2.lovable.app/" },
+      { property: "og:url", content: "https://nexdocs.cossanexusholdings.co.za/" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "NexDocs AI — South Africa's AI Business Platform" },
       {
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/")({
         content: "Run your business smarter with AI. Built for South Africa.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://nexdoc-pro-v2.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/" }],
     scripts: [
       {
         type: "application/ld+json",
@@ -196,7 +196,7 @@ function Hero() {
   return (
     <section className="relative overflow-hidden">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:py-24 text-center">
-        <img src={CNH_LOGO} alt="NexDocs AI logo" className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-2xl shadow-black/40" />
+        <img src={NEXDOCS_LOGO} alt="NexDocs AI logo" className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-2xl shadow-black/40" />
         <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-navy-deep/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-gold">
           <span>🇿🇦</span> South Africa's AI Business Platform
         </div>
