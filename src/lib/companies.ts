@@ -2,6 +2,7 @@
 // Production-ready version using local assets from /public/logos
 
 export const CNH_LOGO = "/logos/cossa-nexus-holdings-logo.png";
+export const NEXDOCS_LOGO = "/logos/nexdocs-logo.png";
 
 export type Company = {
   id: string;
@@ -18,20 +19,10 @@ export const COMPANIES: Company[] = [
     tagline: "Your Home, Our Expertise",
     logo: "/logos/cossa-construction-logo.png",
     documents: [
-      "Construction Quotation",
-      "Building Contract",
-      "Site Safety Plan",
-      "Risk Assessment",
-      "Method Statement",
-      "Materials List",
-      "Sub-contractor Agreement",
-      "Variation Order",
-      "Progress Report",
-      "Snag List",
-      "Practical Completion Certificate",
-      "Final Account Statement",
-      "Warranty Document",
-      "Maintenance Schedule",
+      "Construction Quotation", "Building Contract", "Site Safety Plan", "Risk Assessment",
+      "Method Statement", "Materials List", "Sub-contractor Agreement", "Variation Order",
+      "Progress Report", "Snag List", "Practical Completion Certificate", "Final Account Statement",
+      "Warranty Document", "Maintenance Schedule",
     ],
   },
   {
@@ -39,23 +30,14 @@ export const COMPANIES: Company[] = [
     name: "Cossa Facility Services",
     tagline: "Cleaning & Facility Management",
     logo: "/logos/cossa-facility-logo.png",
-    documents: [
-      "Cleaning Service Agreement",
-      "Site Inspection Report",
-      "Cleaning Schedule",
-      "SLA Document",
-      "Incident Report",
-    ],
+    documents: ["Cleaning Service Agreement", "Site Inspection Report", "Cleaning Schedule", "SLA Document", "Incident Report"],
   },
   {
     id: "store",
     name: "Cossa Store",
     tagline: "Lifestyle & Fashion",
     logo: "/logos/cossa-store-logo.png",
-    documents: [
-      "Sales Invoice",
-      "Refund / Return Form",
-    ],
+    documents: ["Sales Invoice", "Refund / Return Form"],
   },
   {
     id: "tech",
@@ -63,14 +45,8 @@ export const COMPANIES: Company[] = [
     tagline: "Technology Solutions",
     logo: "/logos/cossa-tech-logo.png",
     documents: [
-      "Software Development Quote",
-      "SaaS Subscription Agreement",
-      "IT Service Contract",
-      "Maintenance Agreement",
-      "NDA",
-      "Project Scope Document",
-      "Acceptance Testing Report",
-      "Hosting Agreement",
+      "Software Development Quote", "SaaS Subscription Agreement", "IT Service Contract",
+      "Maintenance Agreement", "NDA", "Project Scope Document", "Acceptance Testing Report", "Hosting Agreement",
     ],
   },
   {
@@ -79,13 +55,8 @@ export const COMPANIES: Company[] = [
     tagline: "Professional Catering & Hospitality",
     logo: "/logos/cossa-cuisine-logo.png",
     documents: [
-      "Catering Quotation",
-      "Event Booking Confirmation",
-      "Menu Proposal",
-      "Catering Service Agreement",
-      "Dietary Requirements Form",
-      "Event Brief",
-      "Post-Event Report",
+      "Catering Quotation", "Event Booking Confirmation", "Menu Proposal", "Catering Service Agreement",
+      "Dietary Requirements Form", "Event Brief", "Post-Event Report",
     ],
   },
   {
@@ -94,18 +65,9 @@ export const COMPANIES: Company[] = [
     tagline: "South African Legal & Labour Documents",
     logo: "/logos/sa-legal-logo.png",
     documents: [
-      "Employment Contract (SA)",
-      "Independent Contractor Agreement",
-      "Letter of Appointment",
-      "Disciplinary Hearing Notice",
-      "Warning Letter",
-      "Retrenchment Letter",
-      "Leave Application",
-      "POPIA Privacy Notice",
-      "BBBEE Affidavit",
-      "Confidentiality Agreement",
-      "Termination Letter",
-      "UIF Declaration",
+      "Employment Contract (SA)", "Independent Contractor Agreement", "Letter of Appointment",
+      "Disciplinary Hearing Notice", "Warning Letter", "Retrenchment Letter", "Leave Application",
+      "POPIA Privacy Notice", "BBBEE Affidavit", "Confidentiality Agreement", "Termination Letter", "UIF Declaration",
     ],
   },
 ];
