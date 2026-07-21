@@ -92,7 +92,7 @@ export const COMPANIES: Company[] = [
     id: "legal",
     name: "SA Legal & Labour",
     tagline: "South African Legal & Labour Documents",
-    logo: "/logos/sa-legal-logo.svg",
+    logo: "/logos/sa-legal-logo.png",
     documents: [
       "Employment Contract (SA)",
       "Independent Contractor Agreement",
