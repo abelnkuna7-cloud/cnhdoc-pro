@@ -38,7 +38,7 @@ export const COMPANIES: Company[] = [
     id: "facility",
     name: "Cossa Facility Services",
     tagline: "Cleaning & Facility Management",
-    logo: "/logos/cossa-facility-services-logo.png",
+    logo: "/logos/cossa-facility-logo.png",
     documents: [
       "Cleaning Service Agreement",
       "Site Inspection Report",
@@ -77,7 +77,7 @@ export const COMPANIES: Company[] = [
     id: "cuisine",
     name: "Cossa Cuisine",
     tagline: "Professional Catering & Hospitality",
-    logo: "/logos/cossa-cuisin-logo.png",
+    logo: "/logos/cossa-cuisine-logo.png",
     documents: [
       "Catering Quotation",
       "Event Booking Confirmation",
@@ -92,7 +92,7 @@ export const COMPANIES: Company[] = [
     id: "legal",
     name: "SA Legal & Labour",
     tagline: "South African Legal & Labour Documents",
-    logo: "/logos/eagle.png",
+    logo: "/logos/sa-legal-logo.svg",
     documents: [
       "Employment Contract (SA)",
       "Independent Contractor Agreement",
