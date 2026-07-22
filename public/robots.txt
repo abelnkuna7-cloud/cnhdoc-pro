@@ -1,7 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /subscribe
 
-Sitemap: https://nexdoc-cossanexusholdings.lovable.app/sitemap.xml
+Sitemap: https://nexdocs.cossanexusholdings.co.za/sitemap.xml
