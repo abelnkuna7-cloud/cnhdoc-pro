@@ -24,6 +24,91 @@ const GenerateInputSchema = z.object({
 
 export type GenerateInput = z.infer<typeof GenerateInputSchema>;
 
+const FIELD_ALIASES: Record<string, string> = {
+  client: "Client name",
+  "client name": "Client name",
+  customer: "Client name",
+  "customer name": "Client name",
+  recipient: "Client name",
+
+  service: "Service",
+  services: "Service",
+  work: "Service",
+  job: "Service",
+
+  project: "Project",
+  "project name": "Project",
+
+  description: "Scope of work",
+  scope: "Scope of work",
+  "scope of work": "Scope of work",
+  "work description": "Scope of work",
+  "project description": "Scope of work",
+
+  amount: "Amount",
+  price: "Amount",
+  total: "Amount",
+  cost: "Amount",
+  fee: "Amount",
+  budget: "Amount",
+
+  date: "Document date",
+  "document date": "Document date",
+  "quotation date": "Document date",
+  "invoice date": "Document date",
+  "proposal date": "Document date",
+
+  address: "Client address",
+  "client address": "Client address",
+  "customer address": "Client address",
+
+  "site address": "Site address",
+  location: "Site address",
+  "project location": "Site address",
+
+  payment: "Payment terms",
+  "payment term": "Payment terms",
+  "payment terms": "Payment terms",
+
+  validity: "Quotation validity",
+  "valid for": "Quotation validity",
+  "quotation validity": "Quotation validity",
+  "validity period": "Quotation validity",
+
+  deadline: "Acceptance deadline",
+  "acceptance deadline": "Acceptance deadline",
+
+  quantity: "Quantity",
+  qty: "Quantity",
+
+  "unit price": "Unit price",
+  rate: "Unit price",
+
+  vat: "VAT status",
+  "vat status": "VAT status",
+
+  email: "Client email",
+  "client email": "Client email",
+  "customer email": "Client email",
+
+  phone: "Client phone",
+  telephone: "Client phone",
+  mobile: "Client phone",
+  "client phone": "Client phone",
+  "customer phone": "Client phone",
+
+  representative: "Client representative",
+  "client representative": "Client representative",
+
+  "quotation number": "Document number",
+  "invoice number": "Document number",
+  "document number": "Document number",
+
+  notes: "Additional notes",
+  note: "Additional notes",
+  "additional notes": "Additional notes",
+};
+
 type WorkerResponse = {
   markdown?: string;
   content?: string;
@@ -41,6 +126,80 @@ function cleanFields(
       )
       .filter(([key, value]) => key.length > 0 && value.length > 0),
   );
+}
+
+function normaliseFieldKey(rawKey: string): string {
+  const cleanedKey = rawKey
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+  return FIELD_ALIASES[cleanedKey] ?? rawKey.trim();
+}
+
+export function cleanGeneratedDocument(text: string): string {
+  return text
+    .replace(/^\s{0,3}#{1,6}\s*/gm, "")
+    .replace(/\*\*\*(.*?)\*\*\*/g, "$1")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`(.*?)`/g, "$1")
+    .replace(/^>\s*/gm, "")
+    .replace(/^\s*[-*_]{3,}\s*$/gm, "")
+    .replace(/^\s*\|.*\|\s*$/gm, "")
+    .replace(/^\s*[-:|\s]+$/gm, "")
+    .replace(/^\s*\*\s+/gm, "• ")
+    .replace(/^\s*-\s+/gm, "• ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+export function parseDocumentFields(fieldsText: string): {
+  fields: Record<string, string>;
+  errors: string[];
+} {
+  const fields: Record<string, string> = {};
+  const errors: string[] = [];
+
+  fieldsText.split(/\r?\n/).forEach((rawLine, index) => {
+    const trimmedLine = rawLine.trim();
+
+    if (!trimmedLine) {
+      return;
+    }
+
+    const segments = trimmedLine
+      .split(/;\s*|\s*\|\s*/g)
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+
+    if (segments.length === 0) {
+      return;
+    }
+
+    segments.forEach((segment) => {
+      const separatorIndex = segment.indexOf(":");
+
+      if (separatorIndex <= 0) {
+        errors.push(`Line ${index + 1} contains a malformed field entry: "${segment}"`);
+        return;
+      }
+
+      const rawKey = segment.slice(0, separatorIndex).trim();
+      const rawValue = segment.slice(separatorIndex + 1).trim();
+
+      if (!rawKey || !rawValue) {
+        errors.push(`Line ${index + 1} contains an incomplete field entry: "${segment}"`);
+        return;
+      }
+
+      const normalisedKey = normaliseFieldKey(rawKey);
+      fields[normalisedKey] = rawValue;
+    });
+  });
+
+  return { fields, errors };
 }
 
 function getFieldValue(
@@ -113,6 +272,48 @@ function calculatePaymentSchedule(total: number, paymentTerms: string) {
   };
 }
 
+function getDocumentHeading(input: GenerateInput): string {
+  const docType = input.documentType.toLowerCase();
+
+  if (docType.includes("invoice")) {
+    return "INVOICE";
+  }
+
+  if (docType.includes("quotation")) {
+    return "QUOTATION";
+  }
+
+  return input.documentType.trim().toUpperCase() || "DOCUMENT";
+}
+
+function getDocumentNumberLabel(input: GenerateInput): string {
+  const docType = input.documentType.toLowerCase();
+
+  if (docType.includes("invoice")) {
+    return "Invoice Number";
+  }
+
+  if (docType.includes("quotation")) {
+    return "Quotation Number";
+  }
+
+  return "Document Number";
+}
+
+function getValidityLabel(input: GenerateInput): string {
+  const docType = input.documentType.toLowerCase();
+
+  if (docType.includes("quotation")) {
+    return "Quotation validity";
+  }
+
+  if (docType.includes("invoice")) {
+    return "Payment terms";
+  }
+
+  return "Validity";
+}
+
 export function buildSafeDocumentContent(input: GenerateInput, serverDate: Date): string {
   const fields = cleanFields(input.fields);
   const clientName =
@@ -135,22 +336,37 @@ export function buildSafeDocumentContent(input: GenerateInput, serverDate: Date)
   const documentNumber = generateDocumentNumber(serverDate);
   const serverDateText = serverDate.toISOString().slice(0, 10);
   const issuerName = ISSUER_PLACEHOLDER;
+  const documentHeading = getDocumentHeading(input);
+  const numberLabel = getDocumentNumberLabel(input);
+  const validityLabel = getValidityLabel(input);
 
   const lines = [
-    "QUOTATION",
+    documentHeading,
     "",
-    `Quotation Number: ${documentNumber}`,
+    `${numberLabel}: ${documentNumber}`,
     `Date: ${serverDateText}`,
     `Prepared for: ${clientName}`,
     `Prepared by: ${issuerName}`,
     `Service: ${service}`,
     `Total: ${formatCurrencyAmount(amountNumber)}`,
-    `Deposit: ${formatCurrencyAmount(deposit)}`,
-    `Balance: ${formatCurrencyAmount(balance)}`,
-    "VAT treatment: Not specified.",
-    `Quotation validity: ${validity}`,
-    "This document is generated from information supplied by the user and should be reviewed before use.",
   ];
+
+  if (input.documentType.toLowerCase().includes("quotation")) {
+    lines.push(`Deposit: ${formatCurrencyAmount(deposit)}`);
+    lines.push(`Balance: ${formatCurrencyAmount(balance)}`);
+  }
+
+  lines.push("VAT treatment: Not specified.");
+
+  if (input.documentType.toLowerCase().includes("quotation")) {
+    lines.push(`${validityLabel}: ${validity}`);
+  } else if (input.documentType.toLowerCase().includes("invoice")) {
+    lines.push(`${validityLabel}: ${paymentTerms}`);
+  } else if (validity) {
+    lines.push(`${validityLabel}: ${validity}`);
+  }
+
+  lines.push("This document is generated from information supplied by the user and should be reviewed before use.");
 
   return lines.join("\n");
 }
@@ -163,6 +379,8 @@ export function validateSafeDocumentContent(
   const violations: string[] = [];
   const serverDateText = serverDate.toISOString().slice(0, 10);
   const documentNumber = generateDocumentNumber(serverDate);
+  const numberLabel = getDocumentNumberLabel(input);
+  const isQuotation = input.documentType.toLowerCase().includes("quotation");
 
   const years = [...content.matchAll(/\b(19|20)\d{2}\b/g)].map((match) => match[0]);
   for (const year of years) {
@@ -171,7 +389,7 @@ export function validateSafeDocumentContent(
     }
   }
 
-  if (!content.includes(`Quotation Number: ${documentNumber}`)) {
+  if (!content.includes(`${numberLabel}: ${documentNumber}`)) {
     violations.push("Document number was not generated in application code.");
   }
 
@@ -199,7 +417,7 @@ export function validateSafeDocumentContent(
   const depositMatch = content.match(/Deposit:\s*([Rr]?\d[\d,]*(?:\.\d{1,2})?)/i);
   const balanceMatch = content.match(/Balance:\s*([Rr]?\d[\d,]*(?:\.\d{1,2})?)/i);
 
-  if (amountMatch && depositMatch && balanceMatch) {
+  if (isQuotation && amountMatch && depositMatch && balanceMatch) {
     const total = parseCurrencyAmount(amountMatch[1]) ?? 0;
     const deposit = parseCurrencyAmount(depositMatch[1]) ?? 0;
     const balance = parseCurrencyAmount(balanceMatch[1]) ?? 0;
@@ -219,7 +437,37 @@ export function validateSafeDocumentContent(
     violations.push("Prepared by value is missing or invalid.");
   }
 
+  if (isQuotation && !content.includes("VAT treatment: Not specified.")) {
+    violations.push("VAT treatment is not set to Not specified.");
+  }
+
   return violations;
+}
+
+export function applySafeDocumentPipeline(
+  input: GenerateInput,
+  serverDate: Date,
+  draftContent?: string,
+): { content: string; issues: string[]; usedFallback: boolean } {
+  const deterministicContent = buildSafeDocumentContent(input, serverDate);
+  const cleanedDraft = draftContent ? cleanGeneratedDocument(draftContent) : "";
+  const candidateContent = cleanedDraft || deterministicContent;
+  const cleanedCandidate = cleanGeneratedDocument(candidateContent);
+  const issues = validateSafeDocumentContent(cleanedCandidate, input, serverDate);
+
+  if (issues.length === 0) {
+    return {
+      content: cleanedCandidate,
+      issues: [],
+      usedFallback: false,
+    };
+  }
+
+  return {
+    content: deterministicContent,
+    issues,
+    usedFallback: true,
+  };
 }
 
 export function buildPrompt(input: GenerateInput): string {
@@ -291,31 +539,18 @@ export const generateDocument = createServerFn({
       };
 
       const serverDate = new Date();
-      const content = buildSafeDocumentContent(
-        {
-          ...data,
-          company: data.company.trim(),
-          documentType: data.documentType.trim(),
-          fields: cleanedFields,
-        },
-        serverDate,
-      );
+      const normalisedInput = {
+        ...data,
+        company: data.company.trim(),
+        documentType: data.documentType.trim(),
+        fields: cleanedFields,
+      };
+      const safeResult = applySafeDocumentPipeline(normalisedInput, serverDate);
 
-      const validationIssues = validateSafeDocumentContent(
-        content,
-        {
-          ...data,
-          company: data.company.trim(),
-          documentType: data.documentType.trim(),
-          fields: cleanedFields,
-        },
-        serverDate,
-      );
-
-      if (validationIssues.length > 0) {
+      if (safeResult.issues.length > 0) {
         return {
           ok: false as const,
-          error: `Document generation failed safety validation: ${validationIssues.join("; ")}`,
+          error: `Document generation failed safety validation: ${safeResult.issues.join("; ")}`,
         };
       }
 
@@ -339,7 +574,7 @@ export const generateDocument = createServerFn({
 
       return {
         ok: true as const,
-        content,
+        content: safeResult.content,
       };
     } catch (error) {
       console.error("NexDocs document generation error", error);

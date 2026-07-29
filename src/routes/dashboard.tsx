@@ -7,7 +7,11 @@ import {
   daysLeft,
 } from "@/lib/auth-context";
 import { COMPANIES } from "@/lib/companies";
-import { generateDocument } from "@/lib/generate-doc.functions";
+import {
+  cleanGeneratedDocument,
+  generateDocument,
+  parseDocumentFields,
+} from "@/lib/generate-doc.functions";
 import {
   loadConversations,
   loadBusinessMemory,
@@ -156,70 +160,6 @@ function normaliseCompanyName(name: string): string {
   return trimmedName;
 }
 
-function cleanGeneratedDocument(text: string): string {
-  return text
-    .replace(/^\s{0,3}#{1,6}\s*/gm, "")
-    .replace(/\*\*\*(.*?)\*\*\*/g, "$1")
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/__(.*?)__/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/`(.*?)`/g, "$1")
-    .replace(/^>\s*/gm, "")
-    .replace(/^\s*[-*_]{3,}\s*$/gm, "")
-    .replace(/^\s*\|.*\|\s*$/gm, "")
-    .replace(/^\s*[-:|\s]+$/gm, "")
-    .replace(/^\s*\*\s+/gm, "• ")
-    .replace(/^\s*-\s+/gm, "• ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-function normaliseFieldKey(rawKey: string): string {
-  const cleanedKey = rawKey
-    .trim()
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-
-  return FIELD_ALIASES[cleanedKey] ?? rawKey.trim();
-}
-
-function parseDocumentFields(
-  fieldsText: string,
-): Record<string, string> {
-  const fields: Record<string, string> = {};
-
-  fieldsText.split("\n").forEach((line) => {
-    const trimmedLine = line.trim();
-
-    if (!trimmedLine) {
-      return;
-    }
-
-    const separatorIndex = trimmedLine.indexOf(":");
-
-    if (separatorIndex <= 0) {
-      return;
-    }
-
-    const rawKey = trimmedLine
-      .slice(0, separatorIndex)
-      .trim();
-
-    const rawValue = trimmedLine
-      .slice(separatorIndex + 1)
-      .trim();
-
-    if (!rawKey || !rawValue) {
-      return;
-    }
-
-    const normalisedKey = normaliseFieldKey(rawKey);
-
-    fields[normalisedKey] = rawValue;
-  });
-
-  return fields;
-}
 
 function Dashboard() {
   const { user, profile, loading } = useAuth();
@@ -332,8 +272,13 @@ function Dashboard() {
       return;
     }
 
-    const fields =
+    const { fields, errors } =
       parseDocumentFields(fieldsText);
+
+    if (errors.length > 0) {
+      setError(errors.join(" "));
+      return;
+    }
 
     if (Object.keys(fields).length === 0) {
       setError(
@@ -835,8 +780,8 @@ function Dashboard() {
               <label className="mb-2 block text-sm font-medium text-foreground">
                 Document details
                 <span className="ml-1 text-xs text-muted-foreground">
-                  One item per line, using{" "}
-                  <code>Field: Value</code>
+                  One item per line, or combine multiple{" "}
+                  <code>Field: Value</code> pairs with semicolons
                 </span>
               </label>
 
