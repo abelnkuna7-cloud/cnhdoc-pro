@@ -274,7 +274,7 @@ ${fieldLines}
 export const generateDocument = createServerFn({
   method: "POST",
 })
-  .validator(GenerateInputSchema)
+  .inputValidator((data: unknown) => GenerateInputSchema.parse(data))
   .handler(async ({ data }) => {
     try {
       const cleanedFields = cleanFields(data.fields);
