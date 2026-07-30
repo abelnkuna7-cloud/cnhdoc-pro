@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { applySafeDocumentPipeline, parseDocumentFields, type GenerateInput } from "./generate-doc.functions";
+import {
+  applySafeDocumentPipeline,
+  buildMissingInformationQuestion,
+  getMissingDocumentInformation,
+  parseDocumentFields,
+  type GenerateInput,
+} from "./generate-doc.functions";
 
 export type ChatMessage = { role: "user" | "assistant" | "system"; content: string };
 
@@ -34,8 +40,12 @@ function inferDocumentInput(messages: ChatMessage[], businessHint?: string): Gen
   }
 
   const { fields } = parseDocumentFields(combinedText);
-  const companyMatch = combinedText.match(/for\s+([A-Z][^\n.]+)/i) ?? businessHint?.match(/company(?: name)?[:\-]\s*([^\n]+)/i);
-  const company = companyMatch?.[1]?.trim() || "Client";
+  const issuerFromFields =
+    fields["Issuing company"] ??
+    fields["Company name"];
+  const issuerFromProfile =
+    businessHint?.match(/^Company:\s*(.+)$/im)?.[1]?.trim();
+  const company = issuerFromFields?.trim() || issuerFromProfile || "";
 
   return {
     company,
@@ -51,6 +61,18 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
+      const inferredInput = inferDocumentInput(data.messages, data.businessHint);
+      if (inferredInput) {
+        const missing = getMissingDocumentInformation(inferredInput);
+        if (missing.length > 0) {
+          return {
+            ok: true as const,
+            content: buildMissingInformationQuestion(inferredInput.documentType, missing),
+            documentReady: false as const,
+          };
+        }
+      }
+
       const messages = [
         { role: "system", content: SYSTEM_PROMPT },
         ...(data.businessHint ? [{ role: "system" as const, content: data.businessHint }] : []),
@@ -77,14 +99,13 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
       const content = json.choices?.[0]?.message?.content ?? json.content ?? "";
       if (!content) return { ok: false as const, error: "Empty response from AI" };
 
-      const inferredInput = inferDocumentInput(data.messages, data.businessHint);
       if (inferredInput) {
         const lastAssistant = [...data.messages].reverse().find((message) => message.role === "assistant")?.content ?? "";
         const safeResult = applySafeDocumentPipeline(inferredInput, new Date(), content || lastAssistant);
-        return { ok: true as const, content: safeResult.content };
+        return { ok: true as const, content: safeResult.content, documentReady: true as const };
       }
 
-      return { ok: true as const, content };
+      return { ok: true as const, content, documentReady: false as const };
     } catch (e) {
       return { ok: false as const, error: e instanceof Error ? e.message : "Network error" };
     }

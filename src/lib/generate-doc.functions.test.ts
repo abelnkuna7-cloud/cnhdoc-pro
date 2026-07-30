@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   applySafeDocumentPipeline,
+  buildMissingInformationQuestion,
   buildPrompt,
   buildSafeDocumentContent,
+  getMissingDocumentInformation,
   parseDocumentFields,
   validateSafeDocumentContent,
 } from "./generate-doc.functions";
@@ -27,7 +29,7 @@ describe("NexDocs document safety", () => {
     const validationIssues = validateSafeDocumentContent(content, input, serverDate);
 
     assert.ok(content.includes("Prepared for: Cossa Nexus Holdings"));
-    assert.ok(content.includes("Prepared by: [Issuing company details required]"));
+    assert.ok(content.includes("Prepared by: Cossa Nexus Holdings"));
     assert.ok(content.includes("Service: Office Renovation"));
     assert.ok(content.includes("Total: R125,000"));
     assert.ok(content.includes("Deposit: R62,500"));
@@ -71,10 +73,46 @@ describe("NexDocs document safety", () => {
     const parsed = parseDocumentFields("Client name: Cossa Nexus Holdings\nService: Office Renovation\nAmount: R125,000\nPayment terms: 50% deposit, balance on completion\nQuotation validity: 14 days");
 
     assert.equal(safeResult.usedFallback, true);
-    assert.ok(safeResult.content.includes("Prepared by: [Issuing company details required]"));
+    assert.ok(safeResult.content.includes("Prepared by: Cossa Nexus Holdings"));
     assert.ok(!safeResult.content.includes("CNH/QRN/001"));
     assert.ok(!safeResult.content.includes("2024-02-20"));
     assert.deepEqual(parsed.errors, []);
     assert.equal(parsed.fields["Client name"], "Cossa Nexus Holdings");
+  });
+
+  it("blocks an incomplete quotation and asks for the missing information", () => {
+    const input = {
+      company: "",
+      documentType: "Quotation",
+      fields: {},
+    };
+
+    const missing = getMissingDocumentInformation(input);
+    const question = buildMissingInformationQuestion(input.documentType, missing);
+
+    assert.ok(missing.includes("Issuing company name"));
+    assert.ok(missing.includes("Client name"));
+    assert.ok(missing.includes("Prices or quotation total"));
+    assert.ok(missing.includes("VAT status (registered/not registered and inclusive/exclusive)"));
+    assert.ok(question.includes("NexDocs will not create the quotation"));
+    assert.ok(!question.includes("Total: R0"));
+  });
+
+  it("accepts a quotation only when its required commercial fields are supplied", () => {
+    const input = {
+      company: "Cossa Construction & DIYs",
+      documentType: "Quotation",
+      fields: {
+        "Client name": "Mthembu Siyabonga",
+        "Client address": "162 Olivenhoutbosch, Centurion",
+        "Scope of work": "Partition drywall ceiling and flooring",
+        Amount: "R7,114.60",
+        "Payment terms": "50% deposit, balance on completion",
+        "Quotation validity": "14 days",
+        "VAT status": "Not VAT registered",
+      },
+    };
+
+    assert.deepEqual(getMissingDocumentInformation(input), []);
   });
 });

@@ -105,7 +105,7 @@ NexDocs AI · Generated for Acme Trading (Pty) Ltd`,
     generationTime: "Ready in 20 seconds",
     aiSupported: true,
     popular: true,
-    aiPrompt: "Create a professional South African quotation with 15% VAT. Ask me for client, line items, unit prices, quantities and validity.",
+    aiPrompt: "Create a professional South African quotation. Ask me for the issuing company, client, line items, unit prices, quantities, payment terms, validity and VAT status before generating it.",
     pages: [
       `QUOTATION
 Quote No: Q-2026-00421
