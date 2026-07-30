@@ -107,6 +107,11 @@ const FIELD_ALIASES: Record<string, string> = {
   notes: "Additional notes",
   note: "Additional notes",
   "additional notes": "Additional notes",
+
+  issuer: "Issuing company",
+  "issuer name": "Issuing company",
+  "issuing company": "Issuing company",
+  "company name": "Issuing company",
 };
 
 type WorkerResponse = {
@@ -227,6 +232,102 @@ function getFieldValue(
   return undefined;
 }
 
+function hasFieldMatching(
+  fields: Record<string, string>,
+  pattern: RegExp,
+): boolean {
+  return Object.entries(fields).some(
+    ([key, value]) => pattern.test(key) && value.trim().length > 0,
+  );
+}
+
+export function getMissingDocumentInformation(input: GenerateInput): string[] {
+  const fields = cleanFields(input.fields);
+  const docType = input.documentType.toLowerCase();
+
+  if (!docType.includes("quotation") && !docType.includes("quote")) {
+    return [];
+  }
+
+  const missing: string[] = [];
+  const company = input.company.trim().toLowerCase();
+  if (!company || company === "client" || company.includes("required")) {
+    missing.push("Issuing company name");
+  }
+
+  if (!getFieldValue(fields, ["Client name", "Client", "Customer name", "Customer"])) {
+    missing.push("Client name");
+  }
+
+  const hasDescription =
+    Boolean(getFieldValue(fields, ["Service", "Scope of work", "Project", "Description"])) ||
+    hasFieldMatching(fields, /^(item|line item|material|product|service)\b/i);
+  if (!hasDescription) {
+    missing.push("Line-item descriptions or scope of work");
+  }
+
+  const hasTotal = Boolean(getFieldValue(fields, ["Amount", "Price", "Cost", "Total", "Fee"]));
+  const hasUnitPrice =
+    Boolean(getFieldValue(fields, ["Unit price", "Rate"])) ||
+    hasFieldMatching(fields, /(unit price|rate|price|amount|total)$/i);
+  if (!hasTotal && !hasUnitPrice) {
+    missing.push("Prices or quotation total");
+  }
+
+  if (
+    hasUnitPrice &&
+    !hasTotal &&
+    !getFieldValue(fields, ["Quantity", "Qty"]) &&
+    !hasFieldMatching(fields, /(quantity|qty)$/i)
+  ) {
+    missing.push("Quantities");
+  }
+
+  if (!getFieldValue(fields, ["Quotation validity", "Validity", "Valid for"])) {
+    missing.push("Quotation validity");
+  }
+
+  if (!getFieldValue(fields, ["Payment terms", "Payment term"])) {
+    missing.push("Payment terms");
+  }
+
+  if (!getFieldValue(fields, ["VAT status", "VAT"])) {
+    missing.push("VAT status (registered/not registered and inclusive/exclusive)");
+  }
+
+  return missing;
+}
+
+export function buildMissingInformationQuestion(
+  documentType: string,
+  missing: string[],
+): string {
+  const heading = documentType.toLowerCase().includes("quotation")
+    ? "quotation"
+    : "document";
+
+  return [
+    `I can prepare the professional ${heading}, but I need the required information before generating it.`,
+    "",
+    "Please provide:",
+    ...missing.map((item, index) => `${index + 1}. ${item}`),
+    "",
+    "You can reply using this format:",
+    "Issuing company: Your company name",
+    "Client name: Client or business name",
+    "Client address: Full address",
+    "Scope of work: Work or materials being quoted",
+    "Quantity: 1",
+    "Unit price: R0.00",
+    "Amount: R0.00",
+    "Payment terms: e.g. 50% deposit, balance on completion",
+    "Quotation validity: e.g. 14 days",
+    "VAT status: Not VAT registered / VAT inclusive / VAT exclusive",
+    "",
+    "For several items, list each item with its quantity and price. NexDocs will not create the quotation until the essential information is complete.",
+  ].join("\n");
+}
+
 function parseCurrencyAmount(value: string): number | null {
   const match = value.match(/[-+]?\d[\d,]*(?:\.\d{1,2})?/);
 
@@ -251,8 +352,6 @@ function generateDocumentNumber(serverDate: Date): string {
   const stamp = serverDate.toISOString().slice(0, 10).replace(/-/g, "");
   return `QUO-${stamp}-001`;
 }
-
-const ISSUER_PLACEHOLDER = "[Issuing company details required]";
 
 function calculatePaymentSchedule(total: number, paymentTerms: string) {
   const depositPercentMatch = paymentTerms.match(/(\d+)\s*%/i);
@@ -335,7 +434,7 @@ export function buildSafeDocumentContent(input: GenerateInput, serverDate: Date)
   const { deposit, balance } = calculatePaymentSchedule(amountNumber, paymentTerms);
   const documentNumber = generateDocumentNumber(serverDate);
   const serverDateText = serverDate.toISOString().slice(0, 10);
-  const issuerName = ISSUER_PLACEHOLDER;
+  const issuerName = input.company.trim();
   const documentHeading = getDocumentHeading(input);
   const numberLabel = getDocumentNumberLabel(input);
   const validityLabel = getValidityLabel(input);
@@ -432,7 +531,7 @@ export function validateSafeDocumentContent(
     violations.push("Prepared for value does not match the client input.");
   }
 
-  const issuerName = ISSUER_PLACEHOLDER;
+  const issuerName = input.company.trim();
   if (!content.includes(`Prepared by: ${issuerName}`)) {
     violations.push("Prepared by value is missing or invalid.");
   }
@@ -545,6 +644,13 @@ export const generateDocument = createServerFn({
         documentType: data.documentType.trim(),
         fields: cleanedFields,
       };
+      const missingInformation = getMissingDocumentInformation(normalisedInput);
+      if (missingInformation.length > 0) {
+        return {
+          ok: false as const,
+          error: `Please complete the quotation before generating it: ${missingInformation.join("; ")}.`,
+        };
+      }
       const safeResult = applySafeDocumentPipeline(normalisedInput, serverDate);
 
       if (safeResult.issues.length > 0) {
