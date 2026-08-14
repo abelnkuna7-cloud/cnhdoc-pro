@@ -15,6 +15,9 @@ import { AuthProvider, useAuth } from "../lib/auth-context";
 import { WHATSAPP_NUMBER } from "../lib/firebase";
 import { NEXDOCS_LOGO } from "../lib/companies";
 
+const GOOGLE_ANALYTICS_ID = import.meta.env.VITE_GA_ID?.trim();
+const SITE_URL = "https://nexdocs.cossanexusholdings.co.za/";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 eagle-bg">
@@ -58,18 +61,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "NexDocs — AI Business Documents for South Africa" },
-      { name: "description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
+      { name: "description", content: "Create clear, editable South African business documents from your own details — quotations, invoices, agreements, HR and compliance documents." },
       { name: "theme-color", content: "#000000" },
       { property: "og:title", content: "NexDocs — AI Business Documents for South Africa" },
       { name: "twitter:title", content: "NexDocs — AI Business Documents for South Africa" },
-      { property: "og:description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
-      { name: "twitter:description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
+      { property: "og:description", content: "Create clear, editable South African business documents from your own details — quotations, invoices, agreements, HR and compliance documents." },
+      { name: "twitter:description", content: "Create clear, editable South African business documents from your own details — quotations, invoices, agreements, HR and compliance documents." },
       { property: "og:image", content: "https://nexdocs.cossanexusholdings.co.za/logos/nexdocs-logo.png" },
       { name: "twitter:image", content: "https://nexdocs.cossanexusholdings.co.za/logos/nexdocs-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: SITE_URL },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
     ],
     links: [
+      { rel: "canonical", href: SITE_URL },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -80,14 +86,58 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         type: "application/ld+json",
         children: JSON.stringify({
           "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "NexDocs",
-          url: "https://nexdocs.cossanexusholdings.co.za/",
-          description: "AI-powered business document generator for South African businesses by Cossa Nexus Holdings.",
-          parentOrganization: { "@type": "Organization", name: "Cossa Nexus Holdings" },
-          areaServed: "ZA",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": `${SITE_URL}#organization`,
+              name: "NexDocs",
+              url: SITE_URL,
+              logo: `${SITE_URL}logos/nexdocs-logo.png`,
+              description: "Guided, editable business document preparation for South African businesses.",
+              email: "cossa@cossanexusholdings.co.za",
+              telephone: "+27678011907",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Olivenhoutbosch, Centurion",
+                addressRegion: "Gauteng",
+                addressCountry: "ZA",
+              },
+              parentOrganization: {
+                "@type": "Organization",
+                name: "Cossa Nexus Holdings (Pty) Ltd",
+              },
+              areaServed: "ZA",
+            },
+            {
+              "@type": "WebSite",
+              "@id": `${SITE_URL}#website`,
+              url: SITE_URL,
+              name: "NexDocs",
+              inLanguage: "en-ZA",
+              publisher: { "@id": `${SITE_URL}#organization` },
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: "NexDocs",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              url: SITE_URL,
+              provider: { "@id": `${SITE_URL}#organization` },
+            },
+          ],
         }),
       },
+      ...(GOOGLE_ANALYTICS_ID
+        ? [
+            {
+              src: `https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`,
+              async: true,
+            },
+            {
+              children: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '${GOOGLE_ANALYTICS_ID}', { anonymize_ip: true });`,
+            },
+          ]
+        : []),
     ],
   }),
   shellComponent: RootShell,

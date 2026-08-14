@@ -585,6 +585,92 @@ This policy sets out the standards of conduct expected of all employees of Acme 
 ${SIG_BLOCK}NexDocs AI · Generated for Acme Trading (Pty) Ltd`,
     ],
   },
+  {
+    id: "catering-quotation",
+    title: "Catering Quotation",
+    category: "Hospitality",
+    icon: "🍽️",
+    description: "A concise catering quotation with event, menu, pricing and payment fields.",
+    generationTime: "Ready to personalise",
+    aiSupported: true,
+    popular: true,
+    pages: [`CATERING QUOTATION
+
+Quotation number: [Reference]
+Date: [Date]
+Prepared by: [Issuing company]
+Prepared for: [Client or company]
+
+EVENT DETAILS
+Event date: [Date]
+Event time: [Time]
+Venue: [Venue]
+Guests: [Number of guests]
+
+MENU AND SERVICE
+[Menu, service and dietary requirements]
+
+PRICING
+Subtotal: [Amount]
+VAT treatment: [VAT treatment]
+Total: [Amount]
+Payment terms: [Terms]
+Validity: [Validity]
+
+Prepared from the details supplied by the user. Review before use.`],
+  },
+  {
+    id: "company-letterhead",
+    title: "Company Letterhead",
+    category: "Finance",
+    icon: "📄",
+    description: "A clean business letter template with contact and recipient fields.",
+    generationTime: "Ready to personalise",
+    aiSupported: true,
+    pages: [`[ISSUING COMPANY NAME]
+[Business address]
+[Phone]  |  [Email]  |  [Website]
+
+Date: [Date]
+
+To: [Recipient name]
+[Recipient company]
+[Recipient address]
+
+SUBJECT: [Subject]
+
+Dear [Recipient name],
+
+[Write the purpose of the letter here.]
+
+Kind regards,
+
+[Name]
+[Position]
+[Issuing company]`],
+  },
+  {
+    id: "business-card",
+    title: "Business Card",
+    category: "Finance",
+    icon: "💳",
+    description: "A simple, editable business-card information layout for your branding.",
+    generationTime: "Ready to personalise",
+    aiSupported: true,
+    pages: [`[COMPANY LOGO]
+
+[FULL NAME]
+[ROLE OR TITLE]
+
+[COMPANY NAME]
+[Mobile number]
+[Email address]
+[Website]
+[Business address]
+
+Use your approved branding and verify every contact detail before printing.`],
+  },
+
 ];
 
 export const DOCUMENT_CATEGORIES: DocumentCategory[] = [

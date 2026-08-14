@@ -7,10 +7,11 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in to NexDocs — AI Business Documents" },
-      { name: "description", content: "Sign in or create a NexDocs account to start your 10-day free trial of AI-powered South African business document generation." },
+      { name: "description", content: "Sign in or create a NexDocs account to prepare editable South African business documents in a private workspace." },
       { property: "og:title", content: "Sign in to NexDocs — AI Business Documents" },
-      { property: "og:description", content: "Create an account and start generating SA business documents with AI in seconds." },
+      { property: "og:description", content: "Create an account to prepare editable South African business documents in a private workspace." },
       { property: "og:url", content: "https://nexdocs.cossanexusholdings.co.za/auth" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
     links: [{ rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/auth" }],
   }),
@@ -63,7 +64,7 @@ function AuthPage() {
         <div className="flex flex-col items-center mb-6">
           <img src={NEXDOCS_LOGO} alt="NexDocs" className="h-16 w-16 rounded-xl object-cover" />
           <h1 className="mt-3 font-display text-2xl text-gold-gradient">Sign in to NexDocs — AI Business Documents</h1>
-          <p className="text-xs text-muted-foreground">A Cossa Nexus Holdings product</p>
+          <p className="text-xs text-muted-foreground">Your private document workspace</p>
         </div>
 
         <div className="flex rounded-md border border-border/60 p-1 mb-5 text-sm">
@@ -126,7 +127,7 @@ function AuthPage() {
         </form>
         {mode === "signup" && (
           <p className="mt-4 text-xs text-muted-foreground text-center">
-            10-day free trial. R99/month after. Cancel anytime.
+            Your workspace is private. Review every document before sharing it.
           </p>
         )}
       </div>

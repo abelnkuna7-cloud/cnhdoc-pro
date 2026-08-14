@@ -318,8 +318,8 @@ export function buildMissingInformationQuestion(
     "Client address: Full address",
     "Scope of work: Work or materials being quoted",
     "Quantity: 1",
-    "Unit price: R0.00",
-    "Amount: R0.00",
+    "Unit price: enter the agreed rate",
+    "Amount: enter the agreed total or budget",
     "Payment terms: e.g. 50% deposit, balance on completion",
     "Quotation validity: e.g. 14 days",
     "VAT status: Not VAT registered / VAT inclusive / VAT exclusive",
@@ -415,134 +415,88 @@ function getValidityLabel(input: GenerateInput): string {
 
 export function buildSafeDocumentContent(input: GenerateInput, serverDate: Date): string {
   const fields = cleanFields(input.fields);
-  const clientName =
-    getFieldValue(fields, ["Client name", "Client", "Customer name", "Customer"]) ??
-    "[Client name required]";
-  const service =
-    getFieldValue(fields, ["Service", "Work", "Job"]) ?? "[Service required]";
-  const amountValue =
-    getFieldValue(fields, ["Amount", "Price", "Cost", "Total", "Fee"]) ??
-    "[Amount required]";
-  const paymentTerms =
-    getFieldValue(fields, ["Payment terms", "Payment term"]) ??
-    "[Payment terms required]";
-  const validity =
-    getFieldValue(fields, ["Quotation validity", "Validity", "Valid for"]) ??
-    "[Quotation validity required]";
-
-  const amountNumber = parseCurrencyAmount(amountValue) ?? 0;
-  const { deposit, balance } = calculatePaymentSchedule(amountNumber, paymentTerms);
+  const value = (labels: string[]) => getFieldValue(fields, labels);
+  const clientName = value(["Client name", "Client", "Customer name", "Customer"]) ?? "[Client name required]";
+  const clientContact = value(["Client contact", "Client contact person"]);
+  const clientEmail = value(["Client email", "Client email address"]);
+  const clientPhone = value(["Client phone", "Client telephone"]);
+  const clientAddress = value(["Client address", "Client physical address"]);
+  const issuerContact = value(["Issuer contact", "Contact person"]);
+  const issuerEmail = value(["Issuer email", "Business email"]);
+  const issuerPhone = value(["Issuer phone", "Business phone"]);
+  const issuerAddress = value(["Issuer address", "Business address"]);
+  const documentDate = value(["Document date", "Date"]) ?? serverDate.toISOString().slice(0, 10);
+  const projectDate = value(["Project or service date", "Service date", "Project date"]);
+  const projectTime = value(["Project or service time", "Service time", "Project time"]);
+  const subject = value(["Subject", "Document title", "Title"]);
+  const scope = value(["Scope of work", "Service", "Work", "Job"]);
+  const lineItems = value(["Line items", "Items", "Line-item descriptions"]);
+  const amountValue = value(["Amount or budget", "Amount", "Price", "Cost", "Total", "Fee"]) ?? "[Amount required]";
+  const vatTreatment = value(["VAT status", "VAT treatment"]) ?? "Not specified";
+  const paymentTerms = value(["Payment terms", "Payment term"]);
+  const validity = value(["Quotation validity", "Validity", "Valid for"]);
+  const amountNumber = parseCurrencyAmount(amountValue);
   const documentNumber = generateDocumentNumber(serverDate);
-  const serverDateText = serverDate.toISOString().slice(0, 10);
-  const issuerName = input.company.trim();
+  const issuerName = input.company.trim() || "[Issuing company details required]";
   const documentHeading = getDocumentHeading(input);
   const numberLabel = getDocumentNumberLabel(input);
   const validityLabel = getValidityLabel(input);
-
   const lines = [
     documentHeading,
     "",
     `${numberLabel}: ${documentNumber}`,
-    `Date: ${serverDateText}`,
-    `Prepared for: ${clientName}`,
-    `Prepared by: ${issuerName}`,
-    `Service: ${service}`,
-    `Total: ${formatCurrencyAmount(amountNumber)}`,
-  ];
-
-  if (input.documentType.toLowerCase().includes("quotation")) {
-    lines.push(`Deposit: ${formatCurrencyAmount(deposit)}`);
-    lines.push(`Balance: ${formatCurrencyAmount(balance)}`);
-  }
-
-  lines.push("VAT treatment: Not specified.");
-
-  if (input.documentType.toLowerCase().includes("quotation")) {
-    lines.push(`${validityLabel}: ${validity}`);
-  } else if (input.documentType.toLowerCase().includes("invoice")) {
-    lines.push(`${validityLabel}: ${paymentTerms}`);
-  } else if (validity) {
-    lines.push(`${validityLabel}: ${validity}`);
-  }
-
-  lines.push("This document is generated from information supplied by the user and should be reviewed before use.");
-
-  return lines.join("\n");
+    `Date: ${documentDate}`,
+    "",
+    "Prepared by",
+    issuerName,
+    issuerContact && `Contact: ${issuerContact}`,
+    issuerEmail && `Email: ${issuerEmail}`,
+    issuerPhone && `Phone: ${issuerPhone}`,
+    issuerAddress && `Address: ${issuerAddress}`,
+    "",
+    "Prepared for",
+    clientName,
+    clientContact && `Contact: ${clientContact}`,
+    clientEmail && `Email: ${clientEmail}`,
+    clientPhone && `Phone: ${clientPhone}`,
+    clientAddress && `Address: ${clientAddress}`,
+    "",
+    subject && `Subject: ${subject}`,
+    ...(scope ? [`Scope of work: ${scope}`] : []),
+    projectDate && `Project or service date: ${projectDate}`,
+    projectTime && `Time: ${projectTime}`,
+    lineItems && `Line items: ${lineItems}`,
+    amountNumber !== null ? `Total, rate or budget: ${formatCurrencyAmount(amountNumber)}` : `Total, rate or budget: ${amountValue}`,
+    `VAT treatment: ${vatTreatment}.`,
+    paymentTerms && `Payment terms: ${paymentTerms}`,
+    validity && `${validityLabel}: ${validity}`,
+    "",
+    "This document is generated from information supplied by the user and should be reviewed before use.",
+  ].filter((line): line is string => Boolean(line));
+  return cleanGeneratedDocument(lines.join("\n"));
 }
-
 export function validateSafeDocumentContent(
   content: string,
   input: GenerateInput,
   serverDate: Date,
 ): string[] {
   const violations: string[] = [];
-  const serverDateText = serverDate.toISOString().slice(0, 10);
+  const fields = cleanFields(input.fields);
   const documentNumber = generateDocumentNumber(serverDate);
   const numberLabel = getDocumentNumberLabel(input);
-  const isQuotation = input.documentType.toLowerCase().includes("quotation");
-
-  const years = [...content.matchAll(/\b(19|20)\d{2}\b/g)].map((match) => match[0]);
-  for (const year of years) {
-    if (year !== String(serverDate.getFullYear())) {
-      violations.push(`Unsupported year: ${year}`);
-    }
-  }
-
-  if (!content.includes(`${numberLabel}: ${documentNumber}`)) {
-    violations.push("Document number was not generated in application code.");
-  }
-
-  if (!content.includes(`Date: ${serverDateText}`)) {
-    violations.push("Date does not match the server date.");
-  }
-
-  if (!content.includes("VAT treatment: Not specified.")) {
-    violations.push("VAT treatment is not set to Not specified.");
-  }
-
-  if (content.includes("VAT total") || content.includes("VAT amount")) {
-    violations.push("Invented VAT calculation detected.");
-  }
-
-  if (/\b(CIDB|NHBRC|CIPC|B-BBEE|legally compliant|building regulations|industry standards|registered with|registration number|vat number|banking details|signature)\b/i.test(content)) {
-    violations.push("Invented compliance or company detail detected.");
-  }
-
-  if (/^#{1,6}\s|\*\*|\*\*\*|\*[^*]|`|^>\s|^\s*\|/m.test(content)) {
-    violations.push("Raw Markdown formatting was detected.");
-  }
-
-  const amountMatch = content.match(/Total:\s*([Rr]?\d[\d,]*(?:\.\d{1,2})?)/i);
-  const depositMatch = content.match(/Deposit:\s*([Rr]?\d[\d,]*(?:\.\d{1,2})?)/i);
-  const balanceMatch = content.match(/Balance:\s*([Rr]?\d[\d,]*(?:\.\d{1,2})?)/i);
-
-  if (isQuotation && amountMatch && depositMatch && balanceMatch) {
-    const total = parseCurrencyAmount(amountMatch[1]) ?? 0;
-    const deposit = parseCurrencyAmount(depositMatch[1]) ?? 0;
-    const balance = parseCurrencyAmount(balanceMatch[1]) ?? 0;
-
-    if (Math.abs((deposit + balance) - total) > 0.01) {
-      violations.push("Payment amounts do not reconcile to the total.");
-    }
-  }
-
-  const clientName = getFieldValue(cleanFields(input.fields), ["Client name", "Client", "Customer name", "Customer"]);
-  if (clientName && !content.includes(`Prepared for: ${clientName}`)) {
-    violations.push("Prepared for value does not match the client input.");
-  }
-
+  const expectedDate = getFieldValue(fields, ["Document date", "Date"]) ?? serverDate.toISOString().slice(0, 10);
+  const expectedVat = getFieldValue(fields, ["VAT status", "VAT treatment"]) ?? "Not specified";
+  const clientName = getFieldValue(fields, ["Client name", "Client", "Customer name", "Customer"]);
   const issuerName = input.company.trim();
-  if (!content.includes(`Prepared by: ${issuerName}`)) {
-    violations.push("Prepared by value is missing or invalid.");
-  }
-
-  if (isQuotation && !content.includes("VAT treatment: Not specified.")) {
-    violations.push("VAT treatment is not set to Not specified.");
-  }
-
+  if (!content.includes(`${numberLabel}: ${documentNumber}`)) violations.push("Document number was not generated in application code.");
+  if (!content.includes(`Date: ${expectedDate}`)) violations.push("Date does not match the supplied document date.");
+  if (!content.includes(`VAT treatment: ${expectedVat}.`)) violations.push("VAT treatment does not match the supplied choice.");
+  if (clientName && !content.includes(clientName)) violations.push("Client details do not match the supplied input.");
+  if (issuerName && !content.includes(issuerName)) violations.push("Issuing company details are missing or invalid.");
+  if (/\b(CIDB|NHBRC|CIPC|B-BBEE|legally compliant|building regulations|industry standards|registered with|registration number|vat number|banking details|signature)\b/i.test(content)) violations.push("Invented compliance or company detail detected.");
+  if (/^#{1,6}\s|\*\*|\*\*\*|\*[^*]|`|^>\s|^\s*\|/m.test(content)) violations.push("Raw Markdown formatting was detected.");
   return violations;
 }
-
 export function applySafeDocumentPipeline(
   input: GenerateInput,
   serverDate: Date,
@@ -591,7 +545,7 @@ STRICT DOCUMENT-SAFETY RULES
 1. Use only information explicitly supplied by the user or retrieved from an authenticated company profile.
 2. Never invent document numbers, dates, company names, addresses, registration numbers, VAT numbers or VAT registration status, contact details, compliance claims, CIDB, NHBRC, CIPC or B-BBEE status, legal approvals, project dates, signatures or banking details.
 3. Generate the document number in application code, not in the AI response.
-4. The current server date is ${serverDateText}. Use that exact date and do not rely on your internal knowledge of the date.
+4. Use the supplied Document date exactly when it exists. When it is missing, use the current server date ${serverDateText}.
 5. Preserve the exact user-entered amount and do not invent VAT totals.
 6. Do not add or calculate VAT unless the user explicitly states VAT inclusive, VAT exclusive, VAT registered or a VAT rate.
 7. When VAT treatment is missing, write exactly: VAT treatment: Not specified.
@@ -623,84 +577,48 @@ export const generateDocument = createServerFn({
 })
   .inputValidator((data: unknown) => GenerateInputSchema.parse(data))
   .handler(async ({ data }) => {
+    const serverDate = new Date();
+    const normalisedInput = {
+      ...data,
+      company: data.company.trim(),
+      documentType: data.documentType.trim(),
+      fields: cleanFields(data.fields),
+    };
+    const missingInformation = getMissingDocumentInformation(normalisedInput);
+    if (missingInformation.length > 0) {
+      return {
+        ok: false as const,
+        error: `Please complete the document before generating it: ${missingInformation.join("; ")}.`,
+      };
+    }
+
+    const fallback = applySafeDocumentPipeline(normalisedInput, serverDate);
     try {
-      const cleanedFields = cleanFields(data.fields);
-      const payload = {
-        prompt: buildPrompt({
-          ...data,
-          company: data.company.trim(),
-          documentType: data.documentType.trim(),
-          fields: cleanedFields,
-        }),
-        company: data.company.trim(),
-        documentType: data.documentType.trim(),
-        fields: cleanedFields,
-      };
-
-      const serverDate = new Date();
-      const normalisedInput = {
-        ...data,
-        company: data.company.trim(),
-        documentType: data.documentType.trim(),
-        fields: cleanedFields,
-      };
-      const missingInformation = getMissingDocumentInformation(normalisedInput);
-      if (missingInformation.length > 0) {
-        return {
-          ok: false as const,
-          error: `Please complete the quotation before generating it: ${missingInformation.join("; ")}.`,
-        };
-      }
-      const safeResult = applySafeDocumentPipeline(normalisedInput, serverDate);
-
-      if (safeResult.issues.length > 0) {
-        return {
-          ok: false as const,
-          error: `Document generation failed safety validation: ${safeResult.issues.join("; ")}`,
-        };
-      }
-
-      const response = await fetch(WORKER_URL, {
+      const response = await fetch(`${WORKER_URL}/api/generate`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: buildPrompt(normalisedInput),
+          documentType: normalisedInput.documentType,
+          companyName: normalisedInput.company,
+        }),
         signal: AbortSignal.timeout(60_000),
       });
 
-      const responseText = await response.text();
-
       if (!response.ok) {
-        console.error("NexDocs worker request failed", {
-          status: response.status,
-          response: responseText.slice(0, 500),
-        });
+        console.error("NexDocs worker request failed", { status: response.status });
+        return { ok: true as const, content: fallback.content };
       }
 
-      return {
-        ok: true as const,
-        content: safeResult.content,
-      };
+      const json = (await response.json()) as WorkerResponse;
+      const safeResult = applySafeDocumentPipeline(
+        normalisedInput,
+        serverDate,
+        json.content ?? json.markdown,
+      );
+      return { ok: true as const, content: safeResult.content };
     } catch (error) {
-      console.error("NexDocs document generation error", error);
-
-      if (
-        error instanceof Error &&
-        (error.name === "TimeoutError" || error.name === "AbortError")
-      ) {
-        return {
-          ok: false as const,
-          error: "Document generation timed out. Please try again.",
-        };
-      }
-
-      return {
-        ok: false as const,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unable to generate the document.",
-      };
+      console.error("NexDocs document generation fallback", error);
+      return { ok: true as const, content: fallback.content };
     }
   });

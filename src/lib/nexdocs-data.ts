@@ -152,6 +152,8 @@ export function businessMemoryHint(memory: BusinessMemory): string | undefined {
     memory.companyName ? "Company: " + memory.companyName : "",
     memory.contactName ? "Contact: " + memory.contactName : "",
     memory.email ? "Email: " + memory.email : "",
+    memory.phone ? "Phone: " + memory.phone : "",
+    memory.address ? "Address: " + memory.address : "",
   ].filter(Boolean);
 
   return lines.length ? lines.join("\n") : undefined;

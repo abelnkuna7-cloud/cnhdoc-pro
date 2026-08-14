@@ -17,6 +17,9 @@ import {
 import { downloadBrandedPdf } from "@/lib/branded-pdf";
 
 export const Route = createFileRoute("/dashboard")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    document: typeof search.document === "string" ? search.document : "",
+  }),
   head: () => ({
     meta: [
       { title: "NexDocs workspace — Guided documents" },
@@ -42,6 +45,12 @@ const DOCUMENT_TYPES = [
   "POPIA policy",
   "Company profile",
   "Tender document",
+  "Catering quotation",
+  "Company letterhead",
+  "Business card",
+  "Proposal",
+  "Purchase order",
+  "Delivery note",
 ];
 
 type DocumentForm = {
@@ -167,6 +176,7 @@ function TextField({
 function Dashboard() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const { document: requestedDocument } = Route.useSearch();
   const generate = useServerFn(generateDocument);
   const [form, setForm] = useState<DocumentForm>(blankForm);
   const [memory, setMemory] = useState<BusinessMemory>({});
@@ -198,19 +208,34 @@ function Dashboard() {
           listWorkspaceBusinessUnits(profile),
         ]);
 
+        const preferredSlug =
+          typeof savedMemory.defaults?.preferred_business_unit === "string"
+            ? savedMemory.defaults.preferred_business_unit
+            : "cossa-nexus-construction";
+        const preferredUnit =
+          profile.isCossaWorkspace
+            ? workspaceUnits.find((unit) => unit.slug === preferredSlug) ??
+              workspaceUnits.find((unit) => unit.slug === "cossa-nexus-construction") ??
+              workspaceUnits[0]
+            : undefined;
+        const requestedType = DOCUMENT_TYPES.find(
+          (type) => type.toLowerCase() === requestedDocument.toLowerCase(),
+        );
+
         setMemory(savedMemory);
         setUnits(workspaceUnits);
         setForm((current) => ({
           ...current,
-          issuingCompany: savedMemory.companyName || current.issuingCompany,
+          documentType: requestedType || current.documentType,
+          issuingCompany:
+            preferredUnit?.name ||
+            savedMemory.companyName ||
+            current.issuingCompany,
           issuerContact: savedMemory.contactName || current.issuerContact,
           issuerEmail: savedMemory.email || current.issuerEmail,
           issuerPhone: savedMemory.phone || current.issuerPhone,
           issuerAddress: savedMemory.address || current.issuerAddress,
-          businessUnitId:
-            profile.isCossaWorkspace && workspaceUnits.length
-              ? workspaceUnits[0].id
-              : current.businessUnitId,
+          businessUnitId: preferredUnit?.id || current.businessUnitId,
         }));
       } catch (loadError) {
         console.error(loadError);
@@ -219,7 +244,7 @@ function Dashboard() {
     };
 
     void loadWorkspace();
-  }, [user, profile]);
+  }, [user, profile, requestedDocument]);
 
   const selectedUnit = useMemo(
     () => units.find((unit) => unit.id === form.businessUnitId) ?? null,
@@ -253,11 +278,22 @@ function Dashboard() {
     setError(null);
     try {
       const nextMemory: BusinessMemory = {
-        companyName: form.issuingCompany,
+        companyName:
+          profile.isCossaWorkspace
+            ? memory.companyName || "Cossa Nexus Holdings (Pty) Ltd"
+            : form.issuingCompany,
         contactName: form.issuerContact,
         email: form.issuerEmail,
         phone: form.issuerPhone,
         address: form.issuerAddress,
+        defaults:
+          profile.isCossaWorkspace
+            ? {
+                ...memory.defaults,
+                preferred_business_unit:
+                  selectedUnit?.slug || "cossa-nexus-construction",
+              }
+            : memory.defaults,
       };
       await saveBusinessMemory(user.uid, profile, nextMemory);
       setMemory(nextMemory);
@@ -340,21 +376,26 @@ function Dashboard() {
         generatedContent: generated,
       });
 
-      await saveBusinessMemory(user.uid, profile, {
-        companyName: form.issuingCompany,
+      const nextMemory: BusinessMemory = {
+        companyName:
+          profile.isCossaWorkspace
+            ? memory.companyName || "Cossa Nexus Holdings (Pty) Ltd"
+            : form.issuingCompany,
         contactName: form.issuerContact,
         email: form.issuerEmail,
         phone: form.issuerPhone,
         address: form.issuerAddress,
-      });
-
-      setMemory({
-        companyName: form.issuingCompany,
-        contactName: form.issuerContact,
-        email: form.issuerEmail,
-        phone: form.issuerPhone,
-        address: form.issuerAddress,
-      });
+        defaults:
+          profile.isCossaWorkspace
+            ? {
+                ...memory.defaults,
+                preferred_business_unit:
+                  selectedUnit?.slug || "cossa-nexus-construction",
+              }
+            : memory.defaults,
+      };
+      await saveBusinessMemory(user.uid, profile, nextMemory);
+      setMemory(nextMemory);
       setSaved(true);
     } catch (generationError) {
       setError(
@@ -673,9 +714,12 @@ function Dashboard() {
 
             {outputText ? (
               <>
-                <div className="mt-5 max-h-[34rem] overflow-y-auto rounded-xl border border-border/60 bg-background p-4 text-sm leading-6 whitespace-pre-wrap text-foreground">
-                  {outputText}
-                </div>
+                <textarea
+                  value={outputText}
+                  onChange={(event) => setOutput(cleanGeneratedDocument(event.target.value))}
+                  aria-label="Editable document draft"
+                  className="mt-5 min-h-[28rem] w-full rounded-xl border border-border/60 bg-background p-4 font-sans text-sm leading-6 text-foreground outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+                />
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <button
                     type="button"

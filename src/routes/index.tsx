@@ -86,7 +86,7 @@ const TRUST = [
   { icon: "🇿🇦", label: "Built for South Africa" },
   { icon: "🤖", label: "AI Powered" },
   { icon: "🔒", label: "Secure Cloud Platform" },
-  { icon: "📄", label: "PDF & Word Export" },
+  { icon: "📄", label: "Editable PDF export" },
   { icon: "⚖️", label: "POPIA Ready" },
   { icon: "🏢", label: "Business Ready" },
 ];
@@ -143,15 +143,15 @@ const FEATURES = [
 ];
 
 const INDUSTRIES = [
-  { icon: "🏗️", name: "Construction", desc: "Safety files, tenders, snag lists.", count: 24 },
-  { icon: "🏢", name: "Facility Management", desc: "SLAs, inspections, incident logs.", count: 18 },
-  { icon: "🧹", name: "Cleaning Services", desc: "Service agreements & schedules.", count: 16 },
-  { icon: "🛍️", name: "Retail", desc: "Invoices, refunds, supplier contracts.", count: 14 },
-  { icon: "🍽️", name: "Hospitality", desc: "Catering, event and menu docs.", count: 15 },
-  { icon: "🚚", name: "Logistics", desc: "Transport agreements & POD forms.", count: 12 },
-  { icon: "💻", name: "Technology", desc: "SaaS agreements, NDAs, scopes.", count: 20 },
-  { icon: "💼", name: "Professional Services", desc: "Consulting, SOWs and proposals.", count: 22 },
-  { icon: "⚖️", name: "Legal & HR", desc: "POPIA, BCEA, LRA, contracts.", count: 26 },
+  { icon: "🏗️", name: "Construction", desc: "Tenders, quotations, safety and project records.", category: "Construction" as DocumentCategory },
+  { icon: "🏢", name: "Facility Management", desc: "Service agreements, inspections and incident records.", category: "Cleaning" as DocumentCategory },
+  { icon: "🧹", name: "Cleaning Services", desc: "Service agreements, schedules and handover records.", category: "Cleaning" as DocumentCategory },
+  { icon: "🛍️", name: "Retail", desc: "Quotations, invoices and supplier paperwork.", category: "Retail" as DocumentCategory },
+  { icon: "🍽️", name: "Hospitality", desc: "Catering quotations, event briefs and bookings.", category: "Hospitality" as DocumentCategory },
+  { icon: "🚚", name: "Logistics", desc: "Delivery records, transport forms and invoices.", category: "Logistics" as DocumentCategory },
+  { icon: "💻", name: "Technology", desc: "Scopes of work, NDAs and service agreements.", category: "Technology" as DocumentCategory },
+  { icon: "💼", name: "Professional Services", desc: "Proposals, scopes and commercial agreements.", category: "Legal" as DocumentCategory },
+  { icon: "⚖️", name: "Legal & HR", desc: "Employment, privacy and workplace documents.", category: "HR" as DocumentCategory },
 ];
 
 
@@ -182,20 +182,33 @@ const USE_CASES = [
 ];
 
 const PLANS = [
-  { name: "Free Trial", price: "R0", period: "10 days", features: ["Unlimited documents", "AI Assistant", "PDF export", "No credit card"], cta: "Start free trial", highlight: false, contact: false },
-  { name: "NexDocs Monthly", price: "R99", period: "/ month", features: ["Unlimited documents", "AI Assistant", "PDF export", "Email support"], cta: "Start free trial", highlight: true, contact: false },
-  { name: "Business workspace", price: "Talk to us", period: "", features: ["Business onboarding", "Workflow guidance", "Priority support", "Growth platform options"], cta: "Contact Cossa", highlight: false, contact: true },
+  {
+    name: "Private workspace",
+    price: "Start here",
+    period: "",
+    features: ["Guided document briefs", "Editable drafts", "PDF download after review", "Private workspace"],
+    cta: "Create workspace",
+    highlight: true,
+    contact: false,
+  },
+  {
+    name: "Business workspace",
+    price: "Talk to us",
+    period: "",
+    features: ["Business onboarding", "Workflow guidance", "Document standards", "Priority support"],
+    cta: "Contact Cossa",
+    highlight: false,
+    contact: true,
+  },
 ];
 
 const FAQS = [
-  { q: "How does the free trial work?", a: "You get full access to NexDocs AI for 10 days with no credit card. After the trial you can pick a plan or cancel — no charges." },
-  { q: "Can I cancel anytime?", a: "Yes. All plans are month-to-month and you can cancel from your dashboard at any time." },
-  { q: "Can I export to Word?", a: "Yes — every document can be exported to PDF or Word, and edited before sending." },
-  { q: "Can I export to PDF?", a: "Yes. Every generated document has a one-click PDF export with your branding." },
-  { q: "Is it built for South Africa?", a: "Every template and the AI itself are trained on SA context — ZAR, VAT (15%), POPIA, BCEA, LRA, CIDB, BBBEE." },
-  { q: "Does it support POPIA?", a: "Yes. We ship POPIA-ready privacy notices, consent forms and data processing agreements." },
-  { q: "Can I customise templates?", a: "Yes. Save your own branded templates and let the AI reuse them across all future documents." },
-  { q: "Is my data secure?", a: "Your data is stored in a secure cloud platform with encryption in transit and at rest, and strict access controls." },
+  { q: "How do I create a document?", a: "Choose a template or open the guided document workspace. Enter the business, client, date and pricing details you want included, then review and edit the draft before downloading it." },
+  { q: "Can I edit a generated document?", a: "Yes. NexDocs shows an editable draft first. You remain responsible for reviewing the wording and facts before using it." },
+  { q: "Can I download a PDF?", a: "Yes. A PDF can be downloaded after you create and review a document in your private workspace." },
+  { q: "Is it for South African businesses?", a: "NexDocs is designed around everyday South African business documents, including ZAR-based quotations, invoices, employment and privacy documents. It does not replace professional legal, tax or financial advice." },
+  { q: "Does NexDocs invent details?", a: "No. The guided brief asks for the details needed for the document and clearly shows missing information for you to complete." },
+  { q: "Who can see my business details?", a: "Signed-in users can access only their own private workspace. Cossa Nexus workspace information is restricted to its authorised members." },
 ];
 
 /* -------------------- Components -------------------- */
@@ -212,7 +225,7 @@ function Landing() {
       <DocumentGallery />
       <WhyChoose />
       <Security />
-      <Integrations />
+      <DocumentDelivery />
       <Testimonials />
       <Pricing />
       <FAQ />
@@ -356,86 +369,43 @@ function Features() {
 function Industries() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-      <SectionHeader
-        eyebrow="Industries"
-        title="Made for every South African business"
-        subtitle="Templates, workflows and AI advice tuned to your industry."
-      />
+      <SectionHeader eyebrow="Industries" title="Made for practical South African business work" subtitle="Open a real document category, choose a template and create an editable draft." />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {INDUSTRIES.map((i) => (
-          <a
-            key={i.name}
-            href="#templates"
-            className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur transition hover:border-gold/60 hover:bg-charcoal"
-            aria-label={`Browse ${i.name} document templates`}
-          >
+        {INDUSTRIES.map((industry) => (
+          <a key={industry.name} href={`#templates`}
+            className="group rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur transition hover:-translate-y-0.5 hover:border-gold/60 hover:bg-charcoal"
+            aria-label={`Open ${industry.name} document templates`}>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-gold-gradient text-lg" aria-hidden>{i.icon}</div>
-              <div>
-                <div className="font-display text-lg">{i.name}</div>
-                <div className="text-xs text-muted-foreground">{i.desc}</div>
-              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-gold-gradient text-lg" aria-hidden>{industry.icon}</div>
+              <div><h3 className="font-display text-lg">{industry.name}</h3><p className="text-xs text-muted-foreground">{industry.desc}</p></div>
             </div>
-            <div className="mt-4 flex items-center justify-between text-xs">
-              <span className="text-gold">{i.count} templates</span>
-              <span className="text-muted-foreground">Browse library →</span>
-            </div>
+            <div className="mt-4 flex items-center justify-between text-xs"><span className="text-gold">Open templates</span><span className="text-muted-foreground group-hover:text-foreground">Browse library →</span></div>
           </a>
         ))}
       </div>
     </section>
   );
 }
-
 function AssistantShowcase() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-      <SectionHeader
-        eyebrow="AI Assistant"
-        title="Ask. Generate. Send."
-        subtitle="See how NexDocs AI turns a single sentence into a professional, ready-to-send document."
-      />
-      <div className="rounded-2xl border border-gold/30 bg-black/70 p-4 sm:p-6 backdrop-blur shadow-2xl shadow-black/40">
-        <div className="space-y-3">
-          <div className="flex justify-end">
-            <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-charcoal/70 px-4 py-3 text-sm border border-border/60">
-              Create a quotation for painting a warehouse in Johannesburg.
-            </div>
-          </div>
-          <div className="flex justify-start">
-            <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-card/80 px-4 py-4 text-sm border border-gold/20">
-              <div className="text-xs uppercase tracking-widest text-gold mb-2">NexDocs AI</div>
-              <div className="font-display text-base mb-2">Quotation — Warehouse Painting, Johannesburg</div>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Surface prep & priming — R 24,500</li>
-                <li>• 2× coats premium acrylic (1,800 m²) — R 78,900</li>
-                <li>• Line marking & safety signage — R 12,400</li>
-                <li>• Subtotal: R 115,800 · VAT (15%): R 17,370</li>
-                <li className="text-foreground">• Total: R 133,170 (valid 30 days)</li>
-              </ul>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {["Download PDF", "Download Word", "Email Client", "Save Template", "Generate Invoice"].map((a) => (
-                  <span key={a} className="rounded-md border border-gold/40 px-3 py-1 text-xs text-gold">{a}</span>
-                ))}
-              </div>
-            </div>
-          </div>
+      <SectionHeader eyebrow="Guided document brief" title="Clear inputs. Professional editable drafts." subtitle="NexDocs asks for the business, client, date, service and pricing details before preparing the document." />
+      <div className="rounded-2xl border border-gold/30 bg-black/70 p-5 sm:p-7 backdrop-blur shadow-2xl shadow-black/40">
+        <div className="grid gap-5 md:grid-cols-[1fr_0.9fr] md:items-center">
+          <div><div className="text-xs uppercase tracking-widest text-gold">Built for review</div><h3 className="mt-2 font-display text-2xl">You control every important fact.</h3>
+            <ul className="mt-4 space-y-2 text-sm text-muted-foreground"><li>✓ Select the issuing company and document type</li><li>✓ Add client, service, dates, amounts and payment terms</li><li>✓ Edit the draft before you download the branded PDF</li></ul></div>
+          <div className="rounded-xl border border-border/60 bg-card/80 p-4 text-sm"><div className="font-display text-base">Quotation brief</div><div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground"><span className="rounded bg-black/30 p-2">Client details</span><span className="rounded bg-black/30 p-2">Scope of work</span><span className="rounded bg-black/30 p-2">Dates and times</span><span className="rounded bg-black/30 p-2">Amount and VAT choice</span></div></div>
         </div>
-        <div className="mt-6 text-center">
-          <Link to="/assistant" className="inline-block rounded-lg bg-gold-gradient px-5 py-2.5 text-sm font-semibold text-primary-foreground">
-            Try the AI Assistant
-          </Link>
-        </div>
+        <div className="mt-6 text-center"><Link to="/dashboard" className="inline-block rounded-lg bg-gold-gradient px-5 py-2.5 text-sm font-semibold text-primary-foreground">Create a guided document</Link></div>
       </div>
     </section>
   );
 }
-
 function HowItWorks() {
   const steps = [
     { n: 1, icon: "🎯", title: "Choose a task", desc: "Pick a document type or just ask the AI assistant." },
     { n: 2, icon: "📝", title: "Answer a few questions", desc: "We only ask what's needed — the rest is auto-filled from your business profile." },
-    { n: 3, icon: "📤", title: "Download or send", desc: "Export to PDF or Word, email a client, or save as a reusable template." },
+    { n: 3, icon: "📤", title: "Review and download", desc: "Edit the result, then download a branded PDF when the wording and details are right." },
   ];
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
@@ -487,7 +457,7 @@ function DocumentGallery() {
   const close = () => setOpenId(null);
 
   const generateHref = (t: DocumentTemplate) =>
-    user ? `/assistant?template=${t.id}` : `/auth?redirect=/assistant?template=${t.id}`;
+    user ? `/dashboard?document=${encodeURIComponent(t.title)}` : `/auth?redirect=/dashboard?document=${encodeURIComponent(t.title)}`;
 
   const downloadSamplePdf = (t: DocumentTemplate) => {
     const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -693,14 +663,14 @@ function TemplateModal({
               </div>
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">What you can generate</div>
-                <p>{t.description} Ready with South African legal context (BCEA, LRA, POPIA, OHSA, CIDB where applicable) and ZAR/VAT formatting.</p>
+                <p>{t.description} The guided workspace uses only the business and client details you supply. Review every result before use.</p>
               </div>
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">How it works</div>
                 <ol className="list-decimal pl-5 space-y-1">
                   <li>Click "Generate with AI" and answer a few short questions.</li>
-                  <li>The AI drafts a fully structured document you can edit.</li>
-                  <li>Export to PDF or Word, or save as a reusable template.</li>
+                  <li>NexDocs creates a concise editable draft from the details you provide.</li>
+                  <li>Review the wording, then download a branded PDF when you are ready.</li>
                 </ol>
               </div>
             </div>
@@ -768,10 +738,10 @@ function TemplateModal({
             ⬇ Download sample PDF
           </button>
           <Link
-            to="/subscribe"
+            to="/auth"
             className="rounded-md border border-gold/40 px-3 py-2 text-xs sm:text-sm text-gold hover:bg-gold/10"
           >
-            Start free trial
+            Create a workspace
           </Link>
           <a
             href={generateHref}
@@ -848,10 +818,10 @@ function Pricing() {
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
         eyebrow="Pricing"
-        title="Simple, transparent pricing"
-        subtitle="Start free for 10 days. Upgrade when you're ready."
+        title="Choose how to start"
+        subtitle="Create a private workspace, or contact us about a business document workflow."
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {PLANS.map((p) => (
           <div
             key={p.name}
@@ -966,73 +936,28 @@ const SECURITY_ITEMS = [
 ];
 
 function Security() {
+  const items = [
+    ["🔒", "Private workspaces", "Signed-in users access only the information linked to their own account."],
+    ["🧾", "Editable before download", "Review and correct the document before you create a PDF."],
+    ["🧠", "Business memory", "Your saved details can speed up future briefs in your private workspace."],
+  ];
   return (
-    <section id="security" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-      <SectionHeader eyebrow="Enterprise Security" title="Built to protect your business" subtitle="Bank-grade security and POPIA-ready compliance — so you can generate, store and share business documents with confidence." />
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SECURITY_ITEMS.map((s) => (
-          <div key={s.title} className="rounded-xl border border-border/60 bg-card/70 p-5 hover:border-gold/60 transition">
-            <div className="h-10 w-10 rounded-lg bg-gold-gradient flex items-center justify-center text-primary-foreground font-display">🔒</div>
-            <div className="mt-3 font-display text-lg text-foreground">{s.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
-          </div>
-        ))}
-      </div>
-      <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs">
-        {["POPIA Ready", "SSL Encrypted", "Daily Backups", "SA-Hosted Ready", "Audit Logged"].map((b) => (
-          <span key={b} className="rounded-full border border-gold/40 px-3 py-1 text-gold">{b}</span>
-        ))}
-      </div>
+    <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <SectionHeader eyebrow="Built for careful work" title="Private by default. Clear about what is generated." subtitle="NexDocs helps you prepare and review business documents. It does not replace legal, tax or financial advice." />
+      <div className="grid gap-4 md:grid-cols-3">{items.map(([icon, title, body]) => <div key={title} className="rounded-xl border border-border/60 bg-card/60 p-5"><div className="text-2xl">{icon}</div><h3 className="mt-3 font-display text-lg">{title}</h3><p className="mt-2 text-sm text-muted-foreground">{body}</p></div>)}</div>
     </section>
   );
 }
 
-type Integration = { name: string; category: string; status: "Available" | "Coming Soon"; icon: string };
-
-const INTEGRATIONS: Integration[] = [
-  { name: "Gmail", category: "Email", status: "Coming Soon", icon: "✉️" },
-  { name: "Outlook", category: "Email", status: "Coming Soon", icon: "📧" },
-  { name: "Microsoft 365", category: "Productivity", status: "Coming Soon", icon: "🪟" },
-  { name: "Google Drive", category: "Storage", status: "Coming Soon", icon: "📁" },
-  { name: "OneDrive", category: "Storage", status: "Coming Soon", icon: "☁️" },
-  { name: "Dropbox", category: "Storage", status: "Coming Soon", icon: "📦" },
-  { name: "WhatsApp Business", category: "Messaging", status: "Coming Soon", icon: "💬" },
-  { name: "PayFast", category: "Payments", status: "Available", icon: "💳" },
-  { name: "Stripe", category: "Payments", status: "Coming Soon", icon: "💠" },
-  { name: "Ozow", category: "Payments", status: "Coming Soon", icon: "⚡" },
-  { name: "Yoco", category: "Payments", status: "Coming Soon", icon: "🟢" },
-  { name: "Xero", category: "Accounting", status: "Coming Soon", icon: "📊" },
-  { name: "Sage", category: "Accounting", status: "Coming Soon", icon: "📗" },
-  { name: "QuickBooks", category: "Accounting", status: "Coming Soon", icon: "📘" },
-];
-
-function Integrations() {
+function DocumentDelivery() {
   return (
-    <section id="integrations" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-      <SectionHeader eyebrow="Integrations" title="Connect the tools you already use" subtitle="NexDocs AI plugs into the email, payments, storage and accounting tools South African businesses run on." />
-      <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {INTEGRATIONS.map((i) => (
-          <div key={i.name} className="group rounded-xl border border-border/60 bg-card/70 p-4 hover:border-gold/60 transition relative">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-black/60 flex items-center justify-center text-xl">{i.icon}</div>
-              <div className="min-w-0">
-                <div className="font-semibold text-foreground truncate">{i.name}</div>
-                <div className="text-[11px] text-muted-foreground">{i.category}</div>
-              </div>
-            </div>
-            <div className="mt-3">
-              {i.status === "Available" ? (
-                <span className="text-[11px] rounded-full bg-gold-gradient px-2 py-0.5 font-semibold text-primary-foreground">Available</span>
-              ) : (
-                <span className="text-[11px] rounded-full border border-gold/40 px-2 py-0.5 text-gold">Coming Soon</span>
-              )}
-            </div>
-          </div>
-        ))}
+    <section id="support" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+      <div className="rounded-2xl border border-gold/30 bg-gradient-to-br from-card to-charcoal p-6 sm:p-8">
+        <div className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
+          <div><div className="text-xs uppercase tracking-[0.2em] text-gold">Direct support</div><h2 className="mt-2 font-display text-3xl">Need help choosing the right document?</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Use the guided workspace for a private editable draft, or contact the Cossa Nexus team on WhatsApp for general platform support.</p></div>
+          <div className="flex flex-wrap gap-3"><Link to="/dashboard" className="rounded-lg bg-gold-gradient px-5 py-3 text-sm font-semibold text-primary-foreground">Open workspace</Link><a href="https://wa.me/27678011907?text=Hello%20Cossa%20Nexus%2C%20I%20need%20help%20with%20NexDocs." target="_blank" rel="noreferrer" className="rounded-lg border border-gold/40 px-5 py-3 text-sm font-semibold text-foreground hover:bg-gold/10">WhatsApp support</a></div>
+        </div>
       </div>
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Need another integration? <Link to="/assistant" className="text-gold hover:underline">Tell the AI Assistant</Link> and we'll prioritise it.
-      </p>
     </section>
   );
 }

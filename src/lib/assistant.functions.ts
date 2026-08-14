@@ -74,22 +74,32 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
         };
       }
 
-      const messages = [
-        { role: "system", content: SYSTEM_PROMPT },
-        ...(data.businessHint
-          ? [{ role: "system" as const, content: data.businessHint }]
-          : []),
-        ...data.messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-        })),
-      ];
+      const prompt = [
+        SYSTEM_PROMPT,
+        data.businessHint
+          ? "Private business profile for this signed-in user:\n" + data.businessHint
+          : "",
+        "Conversation:",
+        ...data.messages.map(
+          (message) =>
+            `${message.role === "assistant" ? "NexDocs" : "User"}: ${message.content}`,
+        ),
+      ]
+        .filter(Boolean)
+        .join("\n\n");
 
-      const response = await fetch("https://nexdocs-api.abelnkuna7.workers.dev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages }),
-      });
+      const response = await fetch(
+        "https://nexdocs-api.abelnkuna7.workers.dev/api/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            documentType: inferredInput ? inferredInput.documentType : "business guidance",
+            companyName: inferredInput?.company || "the business",
+          }),
+        },
+      );
 
       if (response.status === 429) {
         return {
@@ -107,14 +117,11 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
       }
 
       const json = (await response.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
         content?: string;
+        markdown?: string;
       };
 
-      const content =
-        json.choices?.[0]?.message?.content ??
-        json.content ??
-        "";
+      const content = json.content ?? json.markdown ?? "";
 
       if (!content) {
         return { ok: false as const, error: "Empty response from AI" };
