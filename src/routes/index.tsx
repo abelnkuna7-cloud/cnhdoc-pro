@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import jsPDF from "jspdf";
 import { NEXDOCS_LOGO } from "@/lib/companies";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -13,33 +12,36 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NexDocs AI — South Africa's AI Business Platform" },
+      { title: "NexDocs — AI Business Documents for South Africa" },
       {
         name: "description",
         content:
-          "NexDocs AI helps South African businesses run smarter. Generate contracts, quotations, invoices, HR & compliance documents and get AI business advice — POPIA ready, built for SA. Start a free 10-day trial.",
+          "Create clear, editable South African business documents from your own details — quotations, invoices, agreements, HR and compliance documents.",
       },
       {
         name: "keywords",
         content:
           "AI business platform South Africa, NexDocs AI, POPIA documents, SA contracts, quotations invoices, HR compliance, tender documents, small business AI, Cossa Nexus Holdings",
       },
-      { property: "og:title", content: "NexDocs AI — South Africa's AI Business Platform" },
+      { property: "og:title", content: "NexDocs — AI Business Documents for South Africa" },
       {
         property: "og:description",
         content:
-          "Run your business smarter with AI. Contracts, quotes, invoices, HR & compliance docs — built for South Africa.",
+          "Create clear, editable quotations, invoices, agreements, HR and compliance documents for South African businesses.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://nexdocs.cossanexusholdings.co.za/" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "NexDocs AI — South Africa's AI Business Platform" },
+      { name: "twitter:title", content: "NexDocs — AI Business Documents for South Africa" },
       {
         name: "twitter:description",
-        content: "Run your business smarter with AI. Built for South Africa.",
+        content: "Clear, editable business documents for South African businesses.",
       },
     ],
-    links: [{ rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/" }],
+    links: [
+      { rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/" },
+      { rel: "preload", as: "image", href: "/images/cossa-eagle-hero.jpg", type: "image/jpeg" },
+    ],
     scripts: [
       {
         type: "application/ld+json",
@@ -51,12 +53,6 @@ export const Route = createFileRoute("/")({
           operatingSystem: "Web",
           description:
             "South Africa's AI Business Platform. Generate contracts, quotations, invoices, HR and compliance documents with an AI assistant built for SA businesses.",
-          offers: {
-            "@type": "Offer",
-            price: "99",
-            priceCurrency: "ZAR",
-            availability: "https://schema.org/InStock",
-          },
           publisher: {
             "@type": "Organization",
             name: "Cossa Nexus Holdings (Pty) Ltd",
@@ -276,6 +272,10 @@ function Hero() {
             <img
               src="/images/cossa-eagle-hero.jpg"
               alt="Cossa Nexus eagle artwork"
+              width={720}
+              height={1080}
+              fetchPriority="high"
+              decoding="async"
               className="h-[28rem] w-full rounded-[1.5rem] object-cover object-center"
             />
             <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-gold/30 bg-black/75 p-4 backdrop-blur">
@@ -459,7 +459,8 @@ function DocumentGallery() {
   const generateHref = (t: DocumentTemplate) =>
     user ? `/dashboard?document=${encodeURIComponent(t.title)}` : `/auth?redirect=/dashboard?document=${encodeURIComponent(t.title)}`;
 
-  const downloadSamplePdf = (t: DocumentTemplate) => {
+  const downloadSamplePdf = async (t: DocumentTemplate) => {
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "pt", format: "a4" });
     const margin = 48;
     const width = doc.internal.pageSize.getWidth();
@@ -594,7 +595,7 @@ function DocumentGallery() {
           details={details}
           setDetails={setDetails}
           onClose={close}
-          onDownload={() => downloadSamplePdf(open)}
+          onDownload={() => { void downloadSamplePdf(open); }}
           generateHref={generateHref(open)}
         />
       )}
@@ -907,18 +908,18 @@ function CTA() {
     <section className="mx-auto max-w-6xl px-4 pb-20">
       <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-charcoal to-black p-8 sm:p-12 text-center shadow-2xl shadow-black/40">
         <h2 className="font-display text-3xl sm:text-4xl">
-          <span className="text-foreground">Ready to run your business</span>{" "}
-          <span className="text-gold-gradient">smarter?</span>
+          <span className="text-foreground">Ready to create your next</span>{" "}
+          <span className="text-gold-gradient">business document?</span>
         </h2>
         <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-          Start your free 10-day trial today. No credit card required.
+          Create a private workspace, add the facts you want included and review an editable draft before download.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <Link to="/auth" className="rounded-lg bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground">
-            Start Free 10-Day Trial
+            Create workspace
           </Link>
           <Link to="/assistant" className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground">
-            Try AI Assistant
+            Ask NexDocs AI
           </Link>
         </div>
       </div>
