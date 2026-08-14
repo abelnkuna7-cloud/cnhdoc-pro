@@ -92,18 +92,54 @@ const TRUST = [
 ];
 
 const FEATURES = [
-  { icon: "📄", title: "AI Document Generator", desc: "Draft any business document in minutes with AI trained on SA law." },
-  { icon: "🤖", title: "AI Business Assistant", desc: "A ChatGPT-style assistant for SA business, HR, tax and compliance." },
-  { icon: "📑", title: "Quotations", desc: "Branded, VAT-ready quotes with line items and terms." },
-  { icon: "🧾", title: "Invoices", desc: "Professional invoices with ZAR, VAT (15%) and banking details." },
-  { icon: "👥", title: "HR Documents", desc: "BCEA-aligned contracts, warnings, leave and disciplinary letters." },
-  { icon: "⚖️", title: "Compliance", desc: "POPIA, PAIA, BBBEE, OHSA and Companies Act ready templates." },
-  { icon: "📂", title: "Project Documents", desc: "SLAs, scopes, method statements, snag lists and handovers." },
-  { icon: "📈", title: "Business Analytics", desc: "Track quotes, invoices, revenue and pipeline in one place." },
-  { icon: "🏗️", title: "Construction Templates", desc: "Safety files, risk assessments, CIDB-ready tender packs." },
-  { icon: "🧹", title: "Cleaning Templates", desc: "Cleaning SLAs, schedules, inspections and incident reports." },
-  { icon: "🚚", title: "Logistics Templates", desc: "Delivery notes, transport agreements and POD forms." },
-  { icon: "☁️", title: "Cloud Storage", desc: "Everything saved securely, accessible on any device." },
+  {
+    icon: "01",
+    eyebrow: "Guided brief",
+    title: "Start with the facts, not a blank page.",
+    desc: "A professional form collects company, client, dates, scope, line items and terms before NexDocs drafts anything.",
+    href: "/dashboard",
+    action: "Create a document",
+  },
+  {
+    icon: "02",
+    eyebrow: "Editable draft",
+    title: "Review every detail before it leaves your desk.",
+    desc: "Receive a clean, concise draft that you can amend, copy or download as a branded PDF.",
+    href: "/dashboard",
+    action: "Open workspace",
+  },
+  {
+    icon: "03",
+    eyebrow: "South African context",
+    title: "Practical documents for real business work.",
+    desc: "Quotes, invoices, employment documents, policies, project records and compliance support built around how South African businesses operate.",
+    href: "/#templates",
+    action: "Browse templates",
+  },
+  {
+    icon: "04",
+    eyebrow: "Private by design",
+    title: "Your business information stays in your workspace.",
+    desc: "Signed-in users keep their saved details and documents separate. Organisation information is available only to authorised administrators.",
+    href: "/auth",
+    action: "Sign in securely",
+  },
+  {
+    icon: "05",
+    eyebrow: "AI guidance",
+    title: "Ask a question. Get a focused next step.",
+    desc: "Use NexDocs AI for concise business, HR and compliance guidance, then move into a guided form whenever a document needs details.",
+    href: "/assistant",
+    action: "Ask NexDocs AI",
+  },
+  {
+    icon: "06",
+    eyebrow: "Connected operations",
+    title: "Keep document work connected to the right system.",
+    desc: "NexDocs keeps document creation focused and private, while businesses can connect their own approved operations workspace when they need wider reporting.",
+    href: "/dashboard",
+    action: "Open workspace",
+  },
 ];
 
 const INDUSTRIES = [
@@ -188,40 +224,54 @@ function Landing() {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:py-24 text-center">
-        <img src={NEXDOCS_LOGO} alt="NexDocs AI logo" className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-2xl shadow-black/40" />
-        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-black/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-gold">
-          <span>🇿🇦</span> South Africa's AI Business Platform
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(214,164,46,0.15),transparent_30%),radial-gradient(circle_at_20%_0%,rgba(20,55,100,0.26),transparent_35%)]" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-[1.05fr_0.75fr] lg:text-left">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-black/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-gold">
+            <span>🇿🇦</span> South Africa's AI document workspace
+          </div>
+          <h1 className="mt-5 font-display text-4xl leading-tight sm:text-6xl">
+            <span className="text-foreground">Documents that begin with</span>{" "}
+            <span className="text-gold-gradient">the right details.</span>
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            Create polished quotations, invoices, contracts, HR records and business documents through a guided, editable workflow — made for practical South African business work.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/dashboard"
+              className="rounded-xl bg-gold-gradient px-6 py-3 text-center font-semibold text-primary-foreground shadow-lg shadow-gold/20 transition hover:brightness-105"
+            >
+              Create a guided document
+            </Link>
+            <Link
+              to="/assistant"
+              className="rounded-xl border border-gold/40 px-6 py-3 text-center font-semibold text-foreground transition hover:bg-charcoal/50"
+            >
+              Ask NexDocs AI
+            </Link>
+          </div>
+          <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <li>✓ Clear editable briefs</li>
+            <li>✓ No invented business details</li>
+            <li>✓ Private workspaces</li>
+          </ul>
         </div>
-        <h1 className="mt-5 font-display text-4xl sm:text-6xl leading-tight">
-          <span className="text-foreground">Run Your Business</span>{" "}
-          <span className="text-gold-gradient">Smarter with AI</span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base sm:text-lg text-muted-foreground">
-          Generate contracts, quotations, invoices, HR documents, company policies, compliance
-          documents, tender documents and business advice in minutes — using one intelligent AI
-          assistant built specifically for South African businesses.
-        </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            to="/auth"
-            className="rounded-lg bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground shadow-lg shadow-gold/20 hover:opacity-95 transition"
-          >
-            Start Free 10-Day Trial
-          </Link>
-          <Link
-            to="/assistant"
-            className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground hover:bg-charcoal/40 transition"
-          >
-            Try AI Assistant
-          </Link>
+        <div className="relative mx-auto w-full max-w-sm">
+          <div className="absolute -inset-5 rounded-[2rem] bg-gold/15 blur-3xl" />
+          <div className="relative overflow-hidden rounded-[2rem] border border-gold/40 bg-charcoal p-2 shadow-2xl shadow-black/50">
+            <img
+              src="/images/cossa-eagle-hero.jpg"
+              alt="Cossa Nexus eagle artwork"
+              className="h-[28rem] w-full rounded-[1.5rem] object-cover object-center"
+            />
+            <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-gold/30 bg-black/75 p-4 backdrop-blur">
+              <img src={NEXDOCS_LOGO} alt="NexDocs AI" className="h-10 w-10 rounded-lg object-cover" />
+              <div className="mt-3 font-display text-xl text-foreground">NexDocs AI</div>
+              <p className="mt-1 text-sm text-muted-foreground">Clear documents. Confident next steps.</p>
+            </div>
+          </div>
         </div>
-        <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          <li>✓ No Credit Card Required</li>
-          <li>✓ Cancel Anytime</li>
-          <li>✓ Secure Cloud Platform</li>
-          <li>✓ Built for South Africa</li>
-        </ul>
       </div>
     </section>
   );
@@ -256,18 +306,48 @@ function Features() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
-        eyebrow="Platform"
-        title="Everything Your Business Needs"
-        subtitle="One AI-powered platform for documents, compliance and day-to-day business operations."
+        eyebrow="The NexDocs way"
+        title="A more convincing way to create business documents."
+        subtitle="Clear information first. A short editable draft second. A professional PDF only when you are satisfied."
       />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {FEATURES.map((f) => (
-          <div key={f.title} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur hover:border-gold/40 transition">
-            <div className="text-2xl" aria-hidden>{f.icon}</div>
-            <div className="mt-3 font-display text-lg">{f.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((feature) => {
+          const content = (
+            <>
+              <div className="flex items-start justify-between gap-4">
+                <span className="font-display text-3xl text-gold">{feature.icon}</span>
+                <span className="rounded-full border border-gold/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-gold">
+                  {feature.eyebrow}
+                </span>
+              </div>
+              <h3 className="mt-8 font-display text-2xl leading-tight text-foreground">
+                {feature.title}
+              </h3>
+              <p className="mt-3 min-h-[4.5rem] text-sm leading-6 text-muted-foreground">
+                {feature.desc}
+              </p>
+              <span className="mt-7 inline-flex items-center text-sm font-bold text-gold">
+                {feature.action} <span className="ml-2">→</span>
+              </span>
+            </>
+          );
+
+          const className =
+            "group rounded-2xl border border-border/70 bg-gradient-to-br from-card via-card to-charcoal/50 p-6 shadow-xl shadow-black/10 transition duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-gold/5";
+
+          const isExternal = feature.href.startsWith("http");
+          return (
+            <a
+              key={feature.title}
+              href={feature.href}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noreferrer" : undefined}
+              className={className}
+            >
+              {content}
+            </a>
+          );
+        })}
       </div>
     </section>
   );

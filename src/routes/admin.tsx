@@ -1,153 +1,146 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getDb } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
-
-type UserRow = {
-  id: string;
-  email: string;
-  displayName?: string;
-  createdAt?: number;
-  trialEndsAt?: number;
-  subscriptionStatus?: string;
-};
+import {
+  listWorkspaceBusinessUnits,
+  type BusinessUnit,
+} from "@/lib/nexdocs-data";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "CEO Dashboard — Cossa Nexus Holdings" },
-      { name: "description", content: "Cossa Nexus Holdings CEO dashboard — manage NexDocs users, trials, and active R99/month subscriptions." },
+      { title: "Cossa Nexus workspace — NexDocs" },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "CEO Dashboard — Cossa Nexus Holdings" },
-      { property: "og:description", content: "Internal CEO dashboard for Cossa Nexus Holdings." },
-      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/admin" },
     ],
-    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/admin" }],
   }),
-  component: Admin,
+  component: AdminWorkspace,
 });
 
-function Admin() {
+function AdminWorkspace() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [busy, setBusy] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [units, setUnits] = useState<BusinessUnit[]>([]);
+  const [documentCount, setDocumentCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!loading) {
-      if (!user) navigate({ to: "/auth" });
-      else if (profile && !profile.isAdmin) navigate({ to: "/dashboard" });
+    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && user && profile && !profile.isCossaWorkspace) {
+      navigate({ to: "/dashboard" });
     }
   }, [loading, user, profile, navigate]);
 
   useEffect(() => {
-    if (!profile?.isAdmin) return;
-    (async () => {
-      try {
-        const snap = await getDocs(collection(getDb(), "users"));
-        const rows: UserRow[] = snap.docs.map((d) => {
-          const data = d.data() as Record<string, unknown>;
-          const created = data.createdAt as { toMillis?: () => number } | number | undefined;
-          return {
-            id: d.id,
-            email: (data.email as string) ?? "",
-            displayName: data.displayName as string,
-            createdAt:
-              typeof created === "number"
-                ? created
-                : created && typeof created.toMillis === "function"
-                ? created.toMillis()
-                : undefined,
-            trialEndsAt: data.trialEndsAt as number,
-            subscriptionStatus: data.subscriptionStatus as string,
-          };
-        });
-        rows.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-        setUsers(rows);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load users");
-      } finally {
-        setBusy(false);
-      }
-    })();
-  }, [profile?.isAdmin]);
+    if (!profile?.isCossaWorkspace) return;
 
-  if (loading || !profile) return <div className="px-4 py-20 text-center text-muted-foreground">Loading…</div>;
-  if (!profile.isAdmin) return null;
+    const load = async () => {
+      const [workspaceUnits, countResult] = await Promise.all([
+        listWorkspaceBusinessUnits(profile),
+        supabase
+          .from("nexdocs_document_drafts")
+          .select("id", { count: "exact", head: true }),
+      ]);
+      setUnits(workspaceUnits);
+      setDocumentCount(countResult.count ?? 0);
+    };
 
-  const totalUsers = users.length;
-  const activeSubs = users.filter((u) => u.subscriptionStatus === "active").length;
-  const trialing = users.filter((u) => (u.subscriptionStatus ?? "trial") === "trial").length;
-  const mrr = activeSubs * 99;
+    void load().catch((error) => console.error("Could not load Cossa workspace", error));
+  }, [profile]);
+
+  if (loading || !profile) {
+    return (
+      <div className="px-4 py-20 text-center text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!profile.isCossaWorkspace) return null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6">
-        <div className="text-xs uppercase tracking-wider text-gold">Cossa Nexus Holdings</div>
-        <h1 className="font-display text-3xl text-gold-gradient">CEO Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Signed in as {profile.email} · Unlimited access</p>
+      <div className="rounded-3xl border border-gold/30 bg-gradient-to-br from-card to-charcoal/80 p-6 shadow-2xl shadow-black/25 sm:p-8">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+          Private administrator workspace
+        </div>
+        <h1 className="mt-2 font-display text-3xl text-foreground sm:text-4xl">
+          Cossa Nexus document operations
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          This view is available because your verified account has organisation administrator access. Visitor accounts do not receive these company details or business-unit access.
+        </p>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-border/60 bg-background/30 p-4">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Active business units</div>
+            <div className="mt-1 font-display text-3xl text-gold">{units.length}</div>
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-background/30 p-4">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">NexDocs drafts</div>
+            <div className="mt-1 font-display text-3xl text-gold">
+              {documentCount === null ? "…" : documentCount}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border/60 bg-background/30 p-4">
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Growth connection</div>
+            <div className="mt-1 text-sm font-semibold text-foreground">Ready</div>
+          </div>
+        </div>
       </div>
-      {!busy && !error && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-            <div className="text-xs text-muted-foreground">Total users</div>
-            <div className="font-display text-2xl text-foreground">{totalUsers}</div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="rounded-2xl border border-border/60 bg-card/70 p-5 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-2xl text-foreground">Business units</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Choose one when issuing a document in the guided brief.
+              </p>
+            </div>
+            <Link to="/dashboard" className="text-sm font-bold text-gold hover:text-gold-soft">
+              Create document →
+            </Link>
           </div>
-          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-            <div className="text-xs text-muted-foreground">Active subscribers</div>
-            <div className="font-display text-2xl text-gold">{activeSubs}</div>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-            <div className="text-xs text-muted-foreground">On trial</div>
-            <div className="font-display text-2xl text-foreground">{trialing}</div>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-            <div className="text-xs text-muted-foreground">MRR</div>
-            <div className="font-display text-2xl text-gold-gradient">R{mrr.toLocaleString()}</div>
-          </div>
-        </div>
-      )}
-      {busy && <div className="text-muted-foreground">Loading users…</div>}
-      {error && <div className="text-destructive">{error}</div>}
-      {!busy && !error && (
-        <div className="overflow-x-auto rounded-xl border border-border/60 bg-card/70">
-          <table className="w-full text-sm">
-            <thead className="bg-background/40 text-left text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2">Email</th>
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Trial ends</th>
-                <th className="px-3 py-2">Registered</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-t border-border/40">
-                  <td className="px-3 py-2 text-foreground">{u.email}</td>
-                  <td className="px-3 py-2 text-foreground/80">{u.displayName || "—"}</td>
-                  <td className="px-3 py-2">
-                    <span className={`rounded-full px-2 py-0.5 text-xs ${u.subscriptionStatus === "active" ? "bg-gold-gradient text-primary-foreground" : "border border-gold/50 text-gold"}`}>
-                      {u.subscriptionStatus ?? "trial"}
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {units.map((unit) => (
+              <div key={unit.id} className="rounded-xl border border-border/60 bg-background/25 p-4">
+                <div className="flex items-center gap-3">
+                  {unit.slug === "cossa-nexus-construction" ? (
+                    <img
+                      src="/logos/cossa-nexus-construction-logo.jpg"
+                      alt=""
+                      className="h-11 w-11 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-gold/15 font-display text-lg text-gold">
+                      {unit.name.slice(0, 1)}
                     </span>
-                  </td>
-                  <td className="px-3 py-2 text-foreground/70">
-                    {u.trialEndsAt ? new Date(u.trialEndsAt).toLocaleDateString() : "—"}
-                  </td>
-                  <td className="px-3 py-2 text-foreground/70">
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
-                  </td>
-                </tr>
-              ))}
-              {users.length === 0 && (
-                <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No users yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  )}
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold text-foreground">{unit.name}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Private business unit</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <aside className="rounded-2xl border border-gold/30 bg-card/70 p-5 sm:p-6">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Shared operational view</div>
+          <h2 className="mt-2 font-display text-2xl text-foreground">NexDocs in Growth</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            Every document generated from this administrator workspace is added to the Cossa Growth document activity register. Customer and visitor documents remain private and are not copied into Cossa operations.
+          </p>
+          <a
+            href="https://growth.cossanexusholdings.co.za/operations/nexdocs"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 inline-flex rounded-xl bg-gold-gradient px-4 py-3 text-sm font-bold text-primary-foreground"
+          >
+            Open NexDocs activity in Growth
+          </a>
+        </aside>
+      </div>
     </div>
   );
 }

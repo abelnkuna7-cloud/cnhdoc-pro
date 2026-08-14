@@ -1,301 +1,319 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useAuth } from "@/lib/auth-context";
 import {
-  useAuth,
-  hasActiveAccess,
-  daysLeft,
-} from "@/lib/auth-context";
-import { COMPANIES } from "@/lib/companies";
+  type BusinessMemory,
+  type BusinessUnit,
+  listWorkspaceBusinessUnits,
+  loadBusinessMemory,
+  saveBusinessMemory,
+  saveDocumentDraft,
+} from "@/lib/nexdocs-data";
 import {
   cleanGeneratedDocument,
   generateDocument,
-  parseDocumentFields,
 } from "@/lib/generate-doc.functions";
-import {
-  loadConversations,
-  loadBusinessMemory,
-  type Conversation,
-  type BusinessMemory,
-} from "@/lib/assistant-storage";
-import { DOCUMENT_TEMPLATES } from "@/lib/document-templates";
 import { downloadBrandedPdf } from "@/lib/branded-pdf";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      {
-        title: "Dashboard — NexDocs",
-      },
+      { title: "NexDocs workspace — Guided documents" },
       {
         name: "description",
         content:
-          "Generate professional South African business documents with AI. Choose a company, pick a document type, and download your PDF in seconds.",
+          "Create a professional business document through a guided, editable NexDocs brief.",
       },
-      {
-        name: "robots",
-        content: "noindex",
-      },
-      {
-        property: "og:title",
-        content: "NexDocs Dashboard — Generate Your Documents",
-      },
-      {
-        property: "og:description",
-        content:
-          "Your NexDocs workspace for AI-powered South African business document generation.",
-      },
-      {
-        property: "og:url",
-        content:
-          "https://nexdocs.cossanexusholdings.co.za/dashboard",
-      },
-    ],
-    links: [
-      {
-        rel: "canonical",
-        href:
-          "https://nexdocs.cossanexusholdings.co.za/dashboard",
-      },
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: Dashboard,
 });
 
-const FIELD_ALIASES: Record<string, string> = {
-  client: "Client name",
-  "client name": "Client name",
-  customer: "Client name",
-  "customer name": "Client name",
-  recipient: "Client name",
+const DOCUMENT_TYPES = [
+  "Quotation",
+  "Tax invoice",
+  "Service agreement",
+  "Employment contract",
+  "Scope of work",
+  "Method statement",
+  "Risk assessment",
+  "POPIA policy",
+  "Company profile",
+  "Tender document",
+];
 
-  service: "Service",
-  services: "Service",
-  work: "Service",
-  job: "Service",
-
-  project: "Project",
-  "project name": "Project",
-
-  description: "Scope of work",
-  scope: "Scope of work",
-  "scope of work": "Scope of work",
-  "work description": "Scope of work",
-  "project description": "Scope of work",
-
-  amount: "Amount",
-  price: "Amount",
-  total: "Amount",
-  cost: "Amount",
-  fee: "Amount",
-  budget: "Amount",
-
-  date: "Document date",
-  "document date": "Document date",
-  "quotation date": "Document date",
-  "invoice date": "Document date",
-  "proposal date": "Document date",
-
-  address: "Client address",
-  "client address": "Client address",
-  "customer address": "Client address",
-
-  "site address": "Site address",
-  location: "Site address",
-  "project location": "Site address",
-
-  payment: "Payment terms",
-  "payment term": "Payment terms",
-  "payment terms": "Payment terms",
-
-  validity: "Quotation validity",
-  "valid for": "Quotation validity",
-  "quotation validity": "Quotation validity",
-  "validity period": "Quotation validity",
-
-  deadline: "Acceptance deadline",
-  "acceptance deadline": "Acceptance deadline",
-
-  quantity: "Quantity",
-  qty: "Quantity",
-
-  "unit price": "Unit price",
-  rate: "Unit price",
-
-  vat: "VAT status",
-  "vat status": "VAT status",
-
-  email: "Client email",
-  "client email": "Client email",
-  "customer email": "Client email",
-
-  phone: "Client phone",
-  telephone: "Client phone",
-  mobile: "Client phone",
-  "client phone": "Client phone",
-  "customer phone": "Client phone",
-
-  representative: "Client representative",
-  "client representative": "Client representative",
-
-  "quotation number": "Document number",
-  "invoice number": "Document number",
-  "document number": "Document number",
-
-  notes: "Additional notes",
-  note: "Additional notes",
-  "additional notes": "Additional notes",
+type DocumentForm = {
+  documentType: string;
+  businessUnitId: string;
+  issuingCompany: string;
+  issuerContact: string;
+  issuerEmail: string;
+  issuerPhone: string;
+  issuerAddress: string;
+  clientName: string;
+  clientContact: string;
+  clientEmail: string;
+  clientPhone: string;
+  clientAddress: string;
+  documentDate: string;
+  projectDate: string;
+  projectTime: string;
+  title: string;
+  scope: string;
+  lineItems: string;
+  amount: string;
+  vatStatus: string;
+  paymentTerms: string;
+  validity: string;
+  notes: string;
 };
 
-function normaliseCompanyName(name: string): string {
-  const trimmedName = name.trim();
-
-  if (
-    trimmedName.toLowerCase() ===
-    "cossa construction & diy"
-  ) {
-    return "Cossa Nexus Constructions";
-  }
-
-  return trimmedName;
+function blankForm(): DocumentForm {
+  return {
+    documentType: "Quotation",
+    businessUnitId: "",
+    issuingCompany: "",
+    issuerContact: "",
+    issuerEmail: "",
+    issuerPhone: "",
+    issuerAddress: "",
+    clientName: "",
+    clientContact: "",
+    clientEmail: "",
+    clientPhone: "",
+    clientAddress: "",
+    documentDate: new Date().toISOString().slice(0, 10),
+    projectDate: "",
+    projectTime: "",
+    title: "",
+    scope: "",
+    lineItems: "",
+    amount: "",
+    vatStatus: "Not specified",
+    paymentTerms: "Payment terms to be agreed",
+    validity: "14 days",
+    notes: "",
+  };
 }
 
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="block text-sm text-foreground/90">
+      <span className="mb-1.5 block font-medium">
+        {label}
+        {required ? <span className="ml-1 text-gold">*</span> : null}
+      </span>
+      <input
+        type={type}
+        value={value}
+        required={required}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+      />
+    </label>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 4,
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+  required?: boolean;
+}) {
+  return (
+    <label className="block text-sm text-foreground/90">
+      <span className="mb-1.5 block font-medium">
+        {label}
+        {required ? <span className="ml-1 text-gold">*</span> : null}
+      </span>
+      <textarea
+        value={value}
+        required={required}
+        rows={rows}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="w-full resize-y rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20"
+      />
+    </label>
+  );
+}
 
 function Dashboard() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const generate = useServerFn(generateDocument);
-
-  const [companyId, setCompanyId] = useState<
-    string | null
-  >(null);
-
-  const [docType, setDocType] = useState<
-    string | null
-  >(null);
-
-  const [fieldsText, setFieldsText] = useState("");
+  const [form, setForm] = useState<DocumentForm>(blankForm);
+  const [memory, setMemory] = useState<BusinessMemory>({});
+  const [units, setUnits] = useState<BusinessUnit[]>([]);
   const [output, setOutput] = useState("");
+  const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [memoryBusy, setMemoryBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [error, setError] = useState<
-    string | null
-  >(null);
-
-  const cleanedOutput = useMemo(
-    () => cleanGeneratedDocument(output),
-    [output],
-  );
-
-  const [convs, setConvs] = useState<
-    Conversation[]
-  >([]);
-
-  const [mem, setMem] = useState<BusinessMemory>(
-    {},
-  );
+  const update = <K extends keyof DocumentForm>(
+    key: K,
+    value: DocumentForm[K],
+  ) => setForm((current) => ({ ...current, [key]: value }));
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate({
-        to: "/auth",
-      });
+      navigate({ to: "/auth" });
     }
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    setConvs(loadConversations());
-    setMem(loadBusinessMemory());
-  }, []);
+    if (!user || !profile) return;
 
-  const company = useMemo(
-    () =>
-      COMPANIES.find(
-        (companyItem) =>
-          companyItem.id === companyId,
-      ) ?? null,
-    [companyId],
+    const loadWorkspace = async () => {
+      try {
+        const [savedMemory, workspaceUnits] = await Promise.all([
+          loadBusinessMemory(user.uid),
+          listWorkspaceBusinessUnits(profile),
+        ]);
+
+        setMemory(savedMemory);
+        setUnits(workspaceUnits);
+        setForm((current) => ({
+          ...current,
+          issuingCompany: savedMemory.companyName || current.issuingCompany,
+          issuerContact: savedMemory.contactName || current.issuerContact,
+          issuerEmail: savedMemory.email || current.issuerEmail,
+          issuerPhone: savedMemory.phone || current.issuerPhone,
+          issuerAddress: savedMemory.address || current.issuerAddress,
+          businessUnitId:
+            profile.isCossaWorkspace && workspaceUnits.length
+              ? workspaceUnits[0].id
+              : current.businessUnitId,
+        }));
+      } catch (loadError) {
+        console.error(loadError);
+        setError("Your private workspace could not be loaded. Please refresh and try again.");
+      }
+    };
+
+    void loadWorkspace();
+  }, [user, profile]);
+
+  const selectedUnit = useMemo(
+    () => units.find((unit) => unit.id === form.businessUnitId) ?? null,
+    [units, form.businessUnitId],
   );
 
-  const companyName = company
-    ? normaliseCompanyName(company.name)
-    : "";
-
-  const active = hasActiveAccess(profile);
-  const dl = daysLeft(profile);
-
-  const recent = useMemo(
-    () =>
-      [...convs]
-        .sort(
-          (firstConversation, secondConversation) =>
-            secondConversation.updatedAt -
-            firstConversation.updatedAt,
-        )
-        .slice(0, 4),
-    [convs],
+  const outputText = useMemo(
+    () => cleanGeneratedDocument(output),
+    [output],
   );
 
-  const popularTemplates = useMemo(
-    () =>
-      DOCUMENT_TEMPLATES.filter(
-        (template) => template.popular,
-      ).slice(0, 6),
-    [],
-  );
-
-  const memoryFilled =
-    Object.values(mem).filter(Boolean).length;
-
-  const memoryTotal = 11;
-
-  if (loading || !user) {
+  if (loading || !user || !profile) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center text-muted-foreground">
-        Loading…
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-muted-foreground">
+        Loading your private workspace…
       </div>
     );
   }
 
-  const onGenerate = async () => {
-    if (!company || !docType) {
+  const chooseUnit = (unitId: string) => {
+    const unit = units.find((item) => item.id === unitId);
+    setForm((current) => ({
+      ...current,
+      businessUnitId: unitId,
+      issuingCompany: unit?.name || current.issuingCompany,
+    }));
+  };
+
+  const persistMemory = async () => {
+    setMemoryBusy(true);
+    setError(null);
+    try {
+      const nextMemory: BusinessMemory = {
+        companyName: form.issuingCompany,
+        contactName: form.issuerContact,
+        email: form.issuerEmail,
+        phone: form.issuerPhone,
+        address: form.issuerAddress,
+      };
+      await saveBusinessMemory(user.uid, profile, nextMemory);
+      setMemory(nextMemory);
+    } catch (saveError) {
       setError(
-        "Please choose an industry and document type.",
+        saveError instanceof Error
+          ? saveError.message
+          : "Could not save your business details.",
       );
+    } finally {
+      setMemoryBusy(false);
+    }
+  };
+
+  const createDocument = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSaved(false);
+
+    if (!form.issuingCompany.trim() || !form.clientName.trim() || !form.scope.trim()) {
+      setError("Please complete the issuing company, client name and scope of work.");
       return;
     }
 
-    if (!active) {
-      navigate({
-        to: "/subscribe",
-      });
-      return;
-    }
-
-    const { fields, errors } =
-      parseDocumentFields(fieldsText);
-
-    if (errors.length > 0) {
-      setError(errors.join(" "));
-      return;
-    }
-
-    if (Object.keys(fields).length === 0) {
-      setError(
-        "Please enter at least one document detail using the format “Field: Value”.",
-      );
-      return;
-    }
+    const fields = Object.fromEntries(
+      Object.entries({
+        "Issuing company": form.issuingCompany,
+        "Issuer contact": form.issuerContact,
+        "Issuer email": form.issuerEmail,
+        "Issuer phone": form.issuerPhone,
+        "Issuer address": form.issuerAddress,
+        "Client name": form.clientName,
+        "Client contact": form.clientContact,
+        "Client email": form.clientEmail,
+        "Client phone": form.clientPhone,
+        "Client address": form.clientAddress,
+        "Document date": form.documentDate,
+        "Project or service date": form.projectDate,
+        "Project or service time": form.projectTime,
+        Subject: form.title,
+        "Scope of work": form.scope,
+        "Line items": form.lineItems,
+        "Amount or budget": form.amount,
+        "VAT status": form.vatStatus,
+        "Payment terms": form.paymentTerms,
+        "Validity": form.validity,
+        "Additional instructions": form.notes,
+      }).filter(([, value]) => value.trim().length > 0),
+    );
 
     setBusy(true);
-    setError(null);
-    setOutput("");
-
     try {
       const result = await generate({
         data: {
-          company: companyName,
-          documentType: docType,
+          company: form.issuingCompany,
+          documentType: form.documentType,
           fields,
         },
       });
@@ -305,544 +323,414 @@ function Dashboard() {
         return;
       }
 
-      const cleanedContent = cleanGeneratedDocument(result.content);
-      setOutput(cleanedContent);
+      const generated = cleanGeneratedDocument(result.content);
+      const title =
+        form.title.trim() ||
+        form.documentType + " — " + form.clientName.trim();
+
+      setOutput(generated);
+
+      await saveDocumentDraft({
+        userId: user.uid,
+        profile,
+        documentType: form.documentType,
+        title,
+        businessUnitId: selectedUnit?.id ?? null,
+        formData: fields,
+        generatedContent: generated,
+      });
+
+      await saveBusinessMemory(user.uid, profile, {
+        companyName: form.issuingCompany,
+        contactName: form.issuerContact,
+        email: form.issuerEmail,
+        phone: form.issuerPhone,
+        address: form.issuerAddress,
+      });
+
+      setMemory({
+        companyName: form.issuingCompany,
+        contactName: form.issuerContact,
+        email: form.issuerEmail,
+        phone: form.issuerPhone,
+        address: form.issuerAddress,
+      });
+      setSaved(true);
     } catch (generationError) {
       setError(
         generationError instanceof Error
           ? generationError.message
-          : "Document generation failed.",
+          : "Could not generate the document.",
       );
     } finally {
       setBusy(false);
     }
   };
 
-  const copyOutput = async () => {
-    if (!cleanedOutput) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(cleanedOutput);
-    } catch {
-      // Ignore clipboard failures in unsupported environments.
-    }
-  };
-
-  const downloadTextFile = () => {
-    if (!cleanedOutput) {
-      return;
-    }
-
-    const blob = new Blob([cleanedOutput], {
-      type: "text/plain;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${(docType || "document").replace(/[^a-zA-Z0-9\s_-]/g, "").replace(/\s+/g, "_") || "document"}.txt`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const downloadPdf = async () => {
-    if (!cleanedOutput || !company || !docType) {
-      return;
-    }
-
-    await downloadBrandedPdf({
-      title: docType,
-      content: cleanedOutput,
-      brand: {
-        companyName,
-        companyLogo: company.logo,
-        watermarkLogo: "/logos/cossa-nexus-holdings-logo.png",
-        email: mem.email,
-        phone: mem.phone,
-        website: mem.website,
-      },
-    });
-  };
-
-  const printOutput = () => {
-    if (!cleanedOutput) {
-      return;
-    }
-
-    const printWindow = window.open("", "_blank", "width=800,height=900");
-
-    if (!printWindow) {
-      return;
-    }
-
-    printWindow.document.write(`<!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>${docType || "Document"}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; white-space: pre-wrap; }
-            h1 { font-size: 18px; margin-bottom: 12px; }
-          </style>
-        </head>
-        <body>
-          <h1>${(docType || "Document").replace(/</g, "&lt;")}</h1>
-          <pre>${cleanedOutput.replace(/</g, "&lt;")}</pre>
-        </body>
-      </html>`);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  const saveTemplate = () => {
-    if (!cleanedOutput) {
-      return;
-    }
-
-    const blob = new Blob([cleanedOutput], {
-      type: "text/plain;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${(docType || "template").replace(/[^a-zA-Z0-9\s_-]/g, "").replace(/\s+/g, "_") || "template"}.txt`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const emailOutput = () => {
-    if (!cleanedOutput) {
-      return;
-    }
-
-    const subject = encodeURIComponent(`${docType || "Document"} draft`);
-    const body = encodeURIComponent(cleanedOutput);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-  };
-
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-10">
-      <h1 className="sr-only">
-        NexDocs Dashboard — Generate Your Documents
-      </h1>
-
-      <div className="mb-6 flex flex-col justify-between gap-3 rounded-xl border border-border/60 bg-card/70 p-4 sm:flex-row sm:items-center sm:p-5">
-        <div>
-          <div className="font-display text-xl text-foreground">
-            Welcome
-            {profile?.displayName
-              ? `, ${
-                  profile.displayName.split(" ")[0]
-                }`
-              : ""}
-            .
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="rounded-3xl border border-gold/30 bg-gradient-to-br from-card via-card to-charcoal/70 p-6 shadow-2xl shadow-black/30 sm:p-8">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+              Guided document brief
+            </div>
+            <h1 className="mt-3 font-display text-3xl text-foreground sm:text-4xl">
+              Build a polished first draft — one clear step at a time.
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Complete the details below, review the editable result, then download it when it is ready.
+              NexDocs does not invent company, client, date or pricing details.
+            </p>
           </div>
-
-          <div className="text-sm text-muted-foreground">
-            {profile?.email}
-          </div>
+          <Link
+            to="/assistant"
+            className="rounded-lg border border-gold/50 px-4 py-2.5 text-sm font-semibold text-gold transition hover:bg-gold/10"
+          >
+            Ask NexDocs AI
+          </Link>
         </div>
 
-        <div className="text-sm">
-          {profile?.isAdmin ? (
-            <span className="rounded-full bg-gold-gradient px-3 py-1 font-semibold text-primary-foreground">
-              CEO · Unlimited Access
-            </span>
-          ) : profile?.subscriptionStatus ===
-            "active" ? (
-            <span className="rounded-full bg-gold-gradient px-3 py-1 font-semibold text-primary-foreground">
-              Active subscriber
-            </span>
-          ) : active ? (
-            <span className="rounded-full border border-gold/60 px-3 py-1 text-gold">
-              Trial • {dl} day
-              {dl === 1 ? "" : "s"} left
-            </span>
-          ) : (
-            <Link
-              to="/subscribe"
-              className="rounded-full bg-gold-gradient px-3 py-1 font-semibold text-primary-foreground"
-            >
-              Subscribe — R99/mo
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Link
-          to="/assistant"
-          className="flex items-center justify-between rounded-xl border border-gold/60 bg-card/70 p-4 transition hover:border-gold"
-        >
-          <div>
-            <div className="font-display text-lg text-foreground">
-              AI Assistant
-            </div>
-
-            <div className="text-xs text-muted-foreground">
-              Chat with NexDocs AI, draft a
-              document, or get South African
-              business guidance.
-            </div>
-          </div>
-
-          <span className="text-gold">→</span>
-        </Link>
-
-        <Link
-          to="/leads"
-          className="flex items-center justify-between rounded-xl border border-gold/40 bg-card/70 p-4 transition hover:border-gold"
-        >
-          <div>
-            <div className="font-display text-lg text-foreground">
-              Gauteng Lead Finder
-            </div>
-
-            <div className="text-xs text-muted-foreground">
-              Find business leads across Gauteng
-              using live OpenStreetMap data.
-            </div>
-          </div>
-
-          <span className="text-gold">→</span>
-        </Link>
-      </div>
-
-      <div className="mb-6 grid grid-cols-1 gap-3 lg:grid-cols-3">
-        <div className="rounded-xl border border-border/60 bg-card/70 p-4 lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="font-display text-lg text-foreground">
-              Recent conversations
-            </div>
-
-            <Link
-              to="/assistant"
-              className="text-xs text-gold hover:underline"
-            >
-              Open assistant →
-            </Link>
-          </div>
-
-          {recent.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No chats yet.{" "}
-              <Link
-                to="/assistant"
-                className="text-gold hover:underline"
+        {profile.isCossaWorkspace ? (
+          <div className="mt-6 rounded-2xl border border-gold/30 bg-black/20 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-semibold text-foreground">
+                  Cossa Nexus private workspace
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Your organisation defaults and the six business units are visible only in this signed-in workspace.
+                </p>
+              </div>
+              <a
+                href="https://growth.cossanexusholdings.co.za/operations/nexdocs"
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-semibold text-gold hover:text-gold-soft"
               >
-                Start your first conversation
-              </Link>{" "}
-              with the NexDocs AI Business
-              Assistant.
+                View NexDocs activity in Growth →
+              </a>
             </div>
-          ) : (
-            <ul className="divide-y divide-border/60">
-              {recent.map((conversation) => (
-                <li
-                  key={conversation.id}
-                  className="flex items-center justify-between gap-3 py-2"
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {units.map((unit) => (
+                <button
+                  type="button"
+                  key={unit.id}
+                  onClick={() => chooseUnit(unit.id)}
+                  className={
+                    "flex items-center gap-3 rounded-xl border p-3 text-left transition " +
+                    (form.businessUnitId === unit.id
+                      ? "border-gold bg-gold/10"
+                      : "border-border/60 bg-background/30 hover:border-gold/50")
+                  }
                 >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm text-foreground">
-                      {conversation.title}
-                    </div>
-
-                    <div className="text-[11px] text-muted-foreground">
-                      {new Date(
-                        conversation.updatedAt,
-                      ).toLocaleString("en-ZA", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}{" "}
-                      · {conversation.messages.length}{" "}
-                      messages
-                    </div>
-                  </div>
-
-                  <Link
-                    to="/assistant"
-                    className="rounded-full border border-gold/40 px-2.5 py-1 text-xs text-gold hover:border-gold"
-                  >
-                    Resume
-                  </Link>
-                </li>
+                  {unit.slug === "cossa-nexus-construction" ? (
+                    <img
+                      src="/logos/cossa-nexus-construction-logo.jpg"
+                      alt=""
+                      className="h-10 w-10 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/15 text-lg text-gold">
+                      {unit.name.slice(0, 1)}
+                    </span>
+                  )}
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-foreground">
+                      {unit.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Use as issuing company
+                    </span>
+                  </span>
+                </button>
               ))}
-            </ul>
-          )}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 rounded-2xl border border-border/70 bg-background/30 p-4 text-sm text-muted-foreground">
+            This is your private document workspace. Your company details and generated documents are separated from every other NexDocs account.
+          </div>
+        )}
+      </div>
 
-        <div className="rounded-xl border border-border/60 bg-card/70 p-4">
-          <div className="font-display text-lg text-foreground">
-            Business profile
+      <form onSubmit={createDocument} className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="space-y-5 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-xl shadow-black/10 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-2xl text-foreground">Document details</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Short, clear inputs produce a professional editable draft.
+              </p>
+            </div>
+            <select
+              value={form.documentType}
+              onChange={(event) => update("documentType", event.target.value)}
+              className="rounded-lg border border-gold/50 bg-background px-3 py-2 text-sm text-foreground outline-none"
+            >
+              {DOCUMENT_TYPES.map((type) => (
+                <option key={type}>{type}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="mt-1 text-xs text-muted-foreground">
-            Fill this once and the AI can reuse it
-            in future documents.
-          </div>
-
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-navy-deep/60">
-            <div
-              className="h-full bg-gold-gradient"
-              style={{
-                width: `${Math.round(
-                  (memoryFilled / memoryTotal) * 100,
-                )}%`,
-              }}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Document title"
+              value={form.title}
+              onChange={(value) => update("title", value)}
+              placeholder="e.g. Warehouse painting quotation"
+            />
+            <Field
+              label="Document date"
+              value={form.documentDate}
+              onChange={(value) => update("documentDate", value)}
+              type="date"
+              required
+            />
+            <Field
+              label="Project or service date"
+              value={form.projectDate}
+              onChange={(value) => update("projectDate", value)}
+              type="date"
+            />
+            <Field
+              label="Time, if relevant"
+              value={form.projectTime}
+              onChange={(value) => update("projectTime", value)}
+              type="time"
             />
           </div>
 
-          <div className="mt-2 text-xs text-muted-foreground">
-            {memoryFilled} of {memoryTotal} fields
-            complete
-          </div>
-
-          <Link
-            to="/assistant"
-            className="mt-3 inline-block rounded-full border border-gold/40 px-3 py-1 text-xs text-gold hover:border-gold"
-          >
-            {memoryFilled === 0
-              ? "Set up business memory"
-              : "Update business memory"}
-          </Link>
-        </div>
-      </div>
-
-      <div className="mb-6 rounded-xl border border-border/60 bg-card/70 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="font-display text-lg text-foreground">
-            Popular templates
-          </div>
-
-          <a
-            href="/#documents"
-            className="text-xs text-gold hover:underline"
-          >
-            Browse all →
-          </a>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-          {popularTemplates.map((template) => (
-            <a
-              key={template.id}
-              href={`/assistant?template=${encodeURIComponent(
-                template.id,
-              )}`}
-              className="block rounded-lg border border-border/60 bg-background/40 p-3 text-left transition hover:border-gold/60"
-            >
-              <div className="text-2xl">
-                {template.icon}
-              </div>
-
-              <div className="mt-1 line-clamp-2 text-xs font-semibold text-foreground">
-                {template.title}
-              </div>
-
-              <div className="text-[10px] text-muted-foreground">
-                {template.category}
-              </div>
-            </a>
-          ))}
-        </div>
-      </div>
-
-      <h2 className="mb-1 font-display text-2xl text-foreground">
-        Choose an Industry
-      </h2>
-
-      <p className="mb-3 text-sm text-muted-foreground">
-        Pick the industry closest to your business.
-        Templates are designed for South African
-        businesses.
-      </p>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {COMPANIES.map((companyItem) => {
-          const displayedName =
-            normaliseCompanyName(companyItem.name);
-
-          return (
-            <button
-              key={companyItem.id}
-              type="button"
-              onClick={() => {
-                setCompanyId(companyItem.id);
-                setDocType(null);
-                setFieldsText("");
-                setOutput("");
-                setError(null);
-              }}
-              className={`rounded-xl border p-3 text-left transition ${
-                companyId === companyItem.id
-                  ? "border-gold bg-card"
-                  : "border-border/60 bg-card/60 hover:border-gold/60"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {companyItem.logo ? (
-                  <img
-                    src={companyItem.logo}
-                    alt=""
-                    className="h-10 w-10 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gold-gradient font-display text-primary-foreground">
-                    SA
-                  </div>
-                )}
-
-                <div>
-                  <div className="text-sm font-semibold leading-tight text-foreground">
-                    {displayedName}
-                  </div>
-
-                  <div className="text-[11px] text-muted-foreground">
-                    {companyItem.documents.length}{" "}
-                    docs
-                  </div>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {company && (
-        <div className="mt-8 rounded-xl border border-border/60 bg-card/70 p-4 sm:p-5">
-          <h3 className="mb-3 font-display text-xl text-foreground">
-            {companyName} — pick a document
-          </h3>
-
-          <div className="flex flex-wrap gap-2">
-            {company.documents.map((documentName) => (
-              <button
-                key={documentName}
-                type="button"
-                onClick={() => {
-                  setDocType(documentName);
-                  setOutput("");
-                  setError(null);
-                }}
-                className={`rounded-full border px-3 py-1.5 text-sm transition ${
-                  docType === documentName
-                    ? "border-gold bg-gold-gradient font-semibold text-primary-foreground"
-                    : "border-border/60 text-foreground/80 hover:border-gold/60"
-                }`}
-              >
-                {documentName}
-              </button>
-            ))}
-          </div>
-
-          {docType && (
-            <div className="mt-5">
-              <label className="mb-2 block text-sm font-medium text-foreground">
-                Document details
-                <span className="ml-1 text-xs text-muted-foreground">
-                  One item per line, or combine multiple{" "}
-                  <code>Field: Value</code> pairs with semicolons
-                </span>
-              </label>
-
-              <textarea
-                value={fieldsText}
-                onChange={(event) =>
-                  setFieldsText(event.target.value)
-                }
-                placeholder={
-                  "Client name: Thabo\nService: Office painting\nScope of work: Prepare and paint office walls\nAmount: R25 000\nPayment terms: 50% deposit and balance on completion\nQuotation validity: 14 days"
-                }
-                rows={8}
-                className="w-full rounded-md border border-border bg-input px-4 py-3 font-mono text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold"
-              />
-
-              <div className="mt-2 text-xs text-muted-foreground">
-                NexDocs will use supplied information
-                exactly and insert clear placeholders
-                where important information is missing.
-              </div>
-
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <div className="grid gap-4 border-t border-border/60 pt-5 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="font-display text-lg text-foreground">Your business</h3>
                 <button
                   type="button"
-                  onClick={onGenerate}
-                  disabled={busy}
-                  className="rounded-md bg-gold-gradient px-5 py-2.5 font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => void persistMemory()}
+                  disabled={memoryBusy}
+                  className="text-xs font-semibold text-gold hover:text-gold-soft disabled:opacity-60"
                 >
-                  {busy
-                    ? "Generating…"
-                    : `Generate ${docType}`}
+                  {memoryBusy ? "Saving…" : memory.companyName ? "Update saved details" : "Save for next time"}
                 </button>
-
-                {output && (
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={copyOutput}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Copy
-                    </button>
-                    <button
-                      type="button"
-                      onClick={downloadTextFile}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Download Text
-                    </button>
-                    <button
-                      type="button"
-                      onClick={downloadPdf}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Download PDF
-                    </button>
-                    <button
-                      type="button"
-                      onClick={printOutput}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Print
-                    </button>
-                    <button
-                      type="button"
-                      onClick={saveTemplate}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Save Template
-                    </button>
-                    <button
-                      type="button"
-                      onClick={emailOutput}
-                      className="rounded-md border border-gold/60 px-4 py-2.5 font-semibold text-foreground"
-                    >
-                      Email
-                    </button>
-                  </div>
-                )}
               </div>
-
-              {error && (
-                <div
-                  role="alert"
-                  className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive"
-                >
-                  {error}
-                </div>
-              )}
-
-              {output && (
-                <pre className="mt-5 whitespace-pre-wrap rounded-md border border-border/60 bg-background p-4 font-sans text-sm text-foreground/90">
-                  {cleanedOutput}
-                </pre>
-              )}
             </div>
-          )}
-        </div>
-      )}
+            <Field
+              label="Issuing company"
+              value={form.issuingCompany}
+              onChange={(value) => update("issuingCompany", value)}
+              required
+            />
+            <Field
+              label="Contact person"
+              value={form.issuerContact}
+              onChange={(value) => update("issuerContact", value)}
+              placeholder="Full name"
+            />
+            <Field
+              label="Business email"
+              value={form.issuerEmail}
+              onChange={(value) => update("issuerEmail", value)}
+              type="email"
+            />
+            <Field
+              label="Business phone"
+              value={form.issuerPhone}
+              onChange={(value) => update("issuerPhone", value)}
+              type="tel"
+            />
+            <div className="sm:col-span-2">
+              <Field
+                label="Business address"
+                value={form.issuerAddress}
+                onChange={(value) => update("issuerAddress", value)}
+                placeholder="Street, suburb, city"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 border-t border-border/60 pt-5 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <h3 className="font-display text-lg text-foreground">Client or receiving party</h3>
+            </div>
+            <Field
+              label="Client or company name"
+              value={form.clientName}
+              onChange={(value) => update("clientName", value)}
+              required
+            />
+            <Field
+              label="Contact person"
+              value={form.clientContact}
+              onChange={(value) => update("clientContact", value)}
+            />
+            <Field
+              label="Client email"
+              value={form.clientEmail}
+              onChange={(value) => update("clientEmail", value)}
+              type="email"
+            />
+            <Field
+              label="Client phone"
+              value={form.clientPhone}
+              onChange={(value) => update("clientPhone", value)}
+              type="tel"
+            />
+            <div className="sm:col-span-2">
+              <Field
+                label="Client address"
+                value={form.clientAddress}
+                onChange={(value) => update("clientAddress", value)}
+                placeholder="Street, suburb, city"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 border-t border-border/60 pt-5">
+            <TextField
+              label="Scope of work or document purpose"
+              value={form.scope}
+              onChange={(value) => update("scope", value)}
+              placeholder="Describe the work, document purpose or key agreement in plain language."
+              required
+            />
+            <TextField
+              label="Line items, quantities and prices"
+              value={form.lineItems}
+              onChange={(value) => update("lineItems", value)}
+              placeholder={"Item 1 — 2 units at R1,500\nItem 2 — 1 service at R4,000"}
+              rows={4}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Total, rate or budget"
+                value={form.amount}
+                onChange={(value) => update("amount", value)}
+                placeholder="e.g. R 45,000"
+              />
+              <label className="block text-sm text-foreground/90">
+                <span className="mb-1.5 block font-medium">VAT treatment</span>
+                <select
+                  value={form.vatStatus}
+                  onChange={(event) => update("vatStatus", event.target.value)}
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2.5 text-sm text-foreground outline-none focus:border-gold"
+                >
+                  <option>Not specified</option>
+                  <option>VAT inclusive</option>
+                  <option>VAT exclusive</option>
+                  <option>Not VAT registered</option>
+                </select>
+              </label>
+              <Field
+                label="Payment terms"
+                value={form.paymentTerms}
+                onChange={(value) => update("paymentTerms", value)}
+              />
+              <Field
+                label="Validity or expiry"
+                value={form.validity}
+                onChange={(value) => update("validity", value)}
+              />
+            </div>
+            <TextField
+              label="Additional instructions"
+              value={form.notes}
+              onChange={(value) => update("notes", value)}
+              placeholder="Add only facts you want in the document. The result stays concise and editable."
+              rows={3}
+            />
+          </div>
+
+          {error ? (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="w-full rounded-xl bg-gold-gradient px-5 py-3.5 text-sm font-bold text-primary-foreground shadow-lg shadow-gold/20 transition hover:brightness-105 disabled:opacity-60"
+          >
+            {busy ? "Creating your editable draft…" : "Create editable document"}
+          </button>
+        </section>
+
+        <aside className="lg:sticky lg:top-24 lg:h-fit">
+          <div className="rounded-2xl border border-gold/30 bg-card/70 p-5 shadow-xl shadow-black/10">
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+              Review before sending
+            </div>
+            <h2 className="mt-2 font-display text-2xl text-foreground">
+              {outputText ? "Your editable draft" : "A professional result, not a template dump."}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {outputText
+                ? "Review the wording, update any details and download a branded copy when you are happy."
+                : "NexDocs uses only the details you provide. It will not fill a client name, company number, date or price with made-up information."}
+            </p>
+
+            {outputText ? (
+              <>
+                <div className="mt-5 max-h-[34rem] overflow-y-auto rounded-xl border border-border/60 bg-background p-4 text-sm leading-6 whitespace-pre-wrap text-foreground">
+                  {outputText}
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => void navigator.clipboard.writeText(outputText)}
+                    className="rounded-lg border border-border px-3 py-2.5 text-sm font-semibold text-foreground hover:border-gold/60"
+                  >
+                    Copy text
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadBrandedPdf({
+                        title:
+                          form.title ||
+                          form.documentType + " — " + form.clientName,
+                        content: outputText,
+                        brand: {
+                          companyName: form.issuingCompany,
+                          companyLogo:
+                            selectedUnit?.slug === "cossa-nexus-construction"
+                              ? "/logos/cossa-nexus-construction-logo.jpg"
+                              : "/logos/nexdocs-logo.png",
+                          watermarkLogo: "/logos/nexdocs-logo.png",
+                          email: form.issuerEmail,
+                          phone: form.issuerPhone,
+                        },
+                      })
+                    }
+                    className="rounded-lg bg-gold-gradient px-3 py-2.5 text-sm font-bold text-primary-foreground"
+                  >
+                    Download PDF
+                  </button>
+                </div>
+                {saved ? (
+                  <p className="mt-3 text-xs text-gold">
+                    Saved to your private NexDocs workspace.
+                    {profile.isCossaWorkspace
+                      ? " It is also visible as document activity in Growth."
+                      : ""}
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <div className="mt-6 rounded-xl border border-dashed border-border/70 bg-background/30 p-5">
+                <div className="text-sm font-semibold text-foreground">What happens next</div>
+                <ol className="mt-3 space-y-2 text-sm leading-5 text-muted-foreground">
+                  <li>1. NexDocs creates a concise draft from this brief.</li>
+                  <li>2. You review and amend the wording.</li>
+                  <li>3. Download a shareable PDF when ready.</li>
+                </ol>
+              </div>
+            )}
+          </div>
+        </aside>
+      </form>
     </div>
   );
 }

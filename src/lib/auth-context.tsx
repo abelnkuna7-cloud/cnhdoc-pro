@@ -5,22 +5,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as fbSignOut,
-  sendPasswordResetEmail,
-  type User,
-} from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  Timestamp,
-} from "firebase/firestore";
-import { getFirebaseAuth, getDb, ADMIN_EMAIL, TRIAL_DAYS } from "./firebase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
+
+export type AppUser = {
+  uid: string;
+  email: string;
+  displayName: string;
+};
 
 export type UserProfile = {
   uid: string;
@@ -30,10 +22,12 @@ export type UserProfile = {
   trialEndsAt: number;
   subscriptionStatus: "trial" | "active" | "expired" | "cancelled";
   isAdmin: boolean;
+  organisationId: string | null;
+  isCossaWorkspace: boolean;
 };
 
 type AuthCtx = {
-  user: User | null;
+  user: AppUser | null;
   profile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -45,76 +39,105 @@ type AuthCtx = {
 
 const AuthContext = createContext<AuthCtx | null>(null);
 
-async function loadOrCreateProfile(user: User): Promise<UserProfile> {
-  const db = getDb();
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
-  const isAdmin = (user.email ?? "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
-  if (snap.exists()) {
-    const d = snap.data() as Record<string, unknown>;
-    const createdAt = d.createdAt instanceof Timestamp ? d.createdAt.toMillis() : Date.now();
-    const trialEndsAt = typeof d.trialEndsAt === "number"
-      ? d.trialEndsAt
-      : createdAt + TRIAL_DAYS * 24 * 60 * 60 * 1000;
-    return {
-      uid: user.uid,
-      email: user.email ?? "",
-      displayName: (d.displayName as string) ?? user.displayName ?? "",
-      createdAt,
-      trialEndsAt,
-      subscriptionStatus: (d.subscriptionStatus as UserProfile["subscriptionStatus"]) ?? "trial",
-      isAdmin,
-    };
-  }
-  const now = Date.now();
-  const trialEndsAt = now + TRIAL_DAYS * 24 * 60 * 60 * 1000;
-  await setDoc(ref, {
-    email: user.email,
-    displayName: user.displayName ?? "",
-    createdAt: serverTimestamp(),
-    trialEndsAt,
-    subscriptionStatus: "trial",
-  });
+function toAppUser(user: SupabaseUser): AppUser {
   return {
-    uid: user.uid,
+    uid: user.id,
     email: user.email ?? "",
-    displayName: user.displayName ?? "",
-    createdAt: now,
-    trialEndsAt,
-    subscriptionStatus: "trial",
+    displayName:
+      typeof user.user_metadata?.display_name === "string"
+        ? user.user_metadata.display_name
+        : typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name
+          : "",
+  };
+}
+
+async function loadProfile(user: SupabaseUser): Promise<UserProfile> {
+  const [{ data: roleRows }, { data: membershipRows }] = await Promise.all([
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id),
+    supabase
+      .from("organisation_members")
+      .select("organisation_id, role")
+      .eq("user_id", user.id),
+  ]);
+
+  const memberships = membershipRows ?? [];
+  const privilegedMembership =
+    memberships.find((row) => row.role === "owner" || row.role === "admin") ??
+    null;
+  const isAdmin =
+    Boolean(privilegedMembership) ||
+    (roleRows ?? []).some((row) => row.role === "admin");
+
+  const createdAt = user.created_at
+    ? new Date(user.created_at).getTime()
+    : Date.now();
+
+  return {
+    uid: user.id,
+    email: user.email ?? "",
+    displayName: toAppUser(user).displayName,
+    createdAt,
+    trialEndsAt: createdAt + 10 * 24 * 60 * 60 * 1000,
+    subscriptionStatus: "active",
     isAdmin,
+    organisationId: privilegedMembership?.organisation_id ?? null,
+    isCossaWorkspace: isAdmin && Boolean(privilegedMembership?.organisation_id),
   };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          const p = await loadOrCreateProfile(u);
-          setProfile(p);
-        } catch (e) {
-          console.error("profile load failed", e);
-          setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
+  const hydrate = async (supabaseUser: SupabaseUser | null) => {
+    if (!supabaseUser) {
+      setUser(null);
+      setProfile(null);
       setLoading(false);
+      return;
+    }
+
+    setUser(toAppUser(supabaseUser));
+    try {
+      setProfile(await loadProfile(supabaseUser));
+    } catch (error) {
+      console.error("NexDocs profile load failed", error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    const initialise = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (active) await hydrate(data.session?.user ?? null);
+    };
+
+    void initialise();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) void hydrate(session?.user ?? null);
     });
-    return () => unsub();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const refresh = async () => {
-    if (!user) return;
-    const p = await loadOrCreateProfile(user);
-    setProfile(p);
+    const { data } = await supabase.auth.getUser();
+    await hydrate(data.user ?? null);
   };
 
   const value: AuthCtx = {
@@ -122,26 +145,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     signIn: async (email, password) => {
-      await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
     },
     signUp: async (email, password, displayName) => {
-      const cred = await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
-      const now = Date.now();
-      await setDoc(doc(getDb(), "users", cred.user.uid), {
+      const { data, error } = await supabase.auth.signUp({
         email,
-        displayName,
-        createdAt: serverTimestamp(),
-        trialEndsAt: now + TRIAL_DAYS * 24 * 60 * 60 * 1000,
-        subscriptionStatus: "trial",
+        password,
+        options: {
+          data: {
+            display_name: displayName,
+            full_name: displayName,
+          },
+        },
       });
+      if (error) throw error;
+      if (!data.session) {
+        throw new Error(
+          "Please check your email to confirm your NexDocs account, then sign in.",
+        );
+      }
     },
     resetPassword: async (email) => {
-      await sendPasswordResetEmail(getFirebaseAuth(), email, {
-        url: window.location.origin + "/auth",
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/auth",
       });
+      if (error) throw error;
     },
     signOut: async () => {
-      await fbSignOut(getFirebaseAuth());
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     },
     refresh,
   };
@@ -150,21 +186,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used inside AuthProvider");
+  }
+  return context;
 }
 
 export function hasActiveAccess(profile: UserProfile | null): boolean {
-  if (!profile) return false;
-  if (profile.isAdmin) return true; // CEO / admin — no limits
-  if (profile.subscriptionStatus === "active") return true;
-  if (profile.subscriptionStatus === "trial" && profile.trialEndsAt > Date.now()) return true;
-  return false;
+  return Boolean(profile) && profile.subscriptionStatus !== "expired";
 }
 
 export function daysLeft(profile: UserProfile | null): number {
-  if (!profile) return 0;
-  const ms = profile.trialEndsAt - Date.now();
-  return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  if (!profile || profile.subscriptionStatus === "active") return 10;
+  const remaining = profile.trialEndsAt - Date.now();
+  return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
 }
