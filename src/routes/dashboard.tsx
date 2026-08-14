@@ -154,7 +154,7 @@ function normaliseCompanyName(name: string): string {
     trimmedName.toLowerCase() ===
     "cossa construction & diy"
   ) {
-    return "Cossa Construction & DIYs";
+    return "Cossa Nexus Constructions";
   }
 
   return trimmedName;

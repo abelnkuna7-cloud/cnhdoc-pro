@@ -12,9 +12,9 @@ export const Route = createFileRoute("/subscribe")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Subscribe to NexDocs — R99/month" },
       { property: "og:description", content: "Unlimited AI business documents for SA businesses. Cancel anytime." },
-      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/subscribe" },
+      { property: "og:url", content: "https://nexdocs.cossanexusholdings.co.za/subscribe" },
     ],
-    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/subscribe" }],
+    links: [{ rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/subscribe" }],
   }),
   component: SubscribePage,
 });

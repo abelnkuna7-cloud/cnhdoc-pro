@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { CNH_LOGO } from "@/lib/companies";
+import { NEXDOCS_LOGO } from "@/lib/companies";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -10,9 +10,9 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in or create a NexDocs account to start your 10-day free trial of AI-powered South African business document generation." },
       { property: "og:title", content: "Sign in to NexDocs — AI Business Documents" },
       { property: "og:description", content: "Create an account and start generating SA business documents with AI in seconds." },
-      { property: "og:url", content: "https://nexdoc-cossanexusholdings.lovable.app/auth" },
+      { property: "og:url", content: "https://nexdocs.cossanexusholdings.co.za/auth" },
     ],
-    links: [{ rel: "canonical", href: "https://nexdoc-cossanexusholdings.lovable.app/auth" }],
+    links: [{ rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/auth" }],
   }),
   component: AuthPage,
 });
@@ -61,9 +61,9 @@ function AuthPage() {
     <div className="mx-auto max-w-md px-4 py-10">
       <div className="rounded-2xl border border-border/60 bg-card/80 p-6 backdrop-blur shadow-2xl shadow-black/40">
         <div className="flex flex-col items-center mb-6">
-          <img src={CNH_LOGO} alt="CNH" className="h-16 w-16 rounded-xl object-cover" />
+          <img src={NEXDOCS_LOGO} alt="NexDocs" className="h-16 w-16 rounded-xl object-cover" />
           <h1 className="mt-3 font-display text-2xl text-gold-gradient">Sign in to NexDocs — AI Business Documents</h1>
-          <p className="text-xs text-muted-foreground">Cossa Nexus Holdings</p>
+          <p className="text-xs text-muted-foreground">A Cossa Nexus Holdings product</p>
         </div>
 
         <div className="flex rounded-md border border-border/60 p-1 mb-5 text-sm">

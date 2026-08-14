@@ -32,41 +32,43 @@
   --color-ring: var(--ring);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
-  --color-navy: var(--navy);
-  --color-navy-deep: var(--navy-deep);
+  --color-gold-deep: var(--gold-deep);
+  --color-charcoal: var(--charcoal);
+  /* Legacy aliases keep every existing route on the unified palette. */
+  --color-navy: var(--charcoal);
+  --color-navy-deep: var(--background);
 }
 
 :root {
   --radius: 0.75rem;
-  --navy: oklch(0.24 0.06 260);
-  --navy-deep: oklch(0.16 0.05 260);
-  --gold: oklch(0.78 0.13 85);
-  --gold-soft: oklch(0.86 0.09 85);
-  --background: oklch(0.16 0.05 260);
-  --foreground: oklch(0.97 0.01 90);
-  --card: oklch(0.22 0.06 260);
-  --card-foreground: oklch(0.97 0.01 90);
-  --popover: oklch(0.22 0.06 260);
-  --popover-foreground: oklch(0.97 0.01 90);
-  --primary: oklch(0.78 0.13 85);
-  --primary-foreground: oklch(0.16 0.05 260);
-  --secondary: oklch(0.28 0.06 260);
-  --secondary-foreground: oklch(0.97 0.01 90);
-  --muted: oklch(0.28 0.06 260);
-  --muted-foreground: oklch(0.75 0.03 90);
-  --accent: oklch(0.78 0.13 85);
-  --accent-foreground: oklch(0.16 0.05 260);
+  /* Shared Cossa Growth palette */
+  --charcoal: oklch(0.184 0 0); /* #1A1A1A */
+  --gold: oklch(0.766 0.129 86); /* #D4AF37 */
+  --gold-soft: oklch(0.861 0.108 88); /* #F2D16B */
+  --gold-deep: oklch(0.519 0.096 84); /* #8C6A16 */
+  --background: oklch(0 0 0); /* #000000 */
+  --foreground: oklch(1 0 0); /* #FFFFFF */
+  --card: oklch(0.184 0 0);
+  --card-foreground: oklch(1 0 0);
+  --popover: oklch(0.184 0 0);
+  --popover-foreground: oklch(1 0 0);
+  --primary: oklch(0.766 0.129 86);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.24 0 0);
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.72 0.005 90);
+  --accent: oklch(0.766 0.129 86);
+  --accent-foreground: oklch(0 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.32 0.06 260);
-  --input: oklch(0.28 0.06 260);
-  --ring: oklch(0.78 0.13 85);
+  --border: oklch(0.3 0.02 85);
+  --input: oklch(0.24 0 0);
+  --ring: oklch(0.766 0.129 86);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  * { border-color: var(--color-border); }
   html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -79,19 +81,19 @@
 }
 
 @utility text-gold-gradient {
-  background: linear-gradient(135deg, oklch(0.86 0.09 85), oklch(0.7 0.14 80));
+  background: linear-gradient(135deg, oklch(0.861 0.108 88), oklch(0.7 0.13 84));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 @utility bg-gold-gradient {
-  background: linear-gradient(135deg, oklch(0.82 0.13 85), oklch(0.68 0.14 75));
+  background: linear-gradient(135deg, oklch(0.8 0.125 86), oklch(0.62 0.11 82));
 }
 
 @utility eagle-bg {
   background:
-    radial-gradient(ellipse at 50% 30%, oklch(0.32 0.07 260 / 0.6), transparent 60%),
-    radial-gradient(ellipse at 80% 80%, oklch(0.78 0.13 85 / 0.08), transparent 50%),
-    linear-gradient(180deg, oklch(0.16 0.05 260), oklch(0.12 0.04 260));
+    radial-gradient(ellipse at 50% 25%, oklch(0.22 0 0 / 0.9), transparent 62%),
+    radial-gradient(ellipse at 85% 85%, oklch(0.766 0.129 86 / 0.08), transparent 50%),
+    linear-gradient(180deg, oklch(0.09 0 0), oklch(0 0 0));
 }

@@ -7,13 +7,13 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider, useAuth } from "../lib/auth-context";
 import { WHATSAPP_NUMBER } from "../lib/firebase";
-import { CNH_LOGO } from "../lib/companies";
+import { NEXDOCS_LOGO } from "../lib/companies";
 
 function NotFoundComponent() {
   return (
@@ -59,13 +59,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "NexDocs — AI Business Documents for South Africa" },
       { name: "description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
-      { name: "theme-color", content: "#0A1F44" },
+      { name: "theme-color", content: "#000000" },
       { property: "og:title", content: "NexDocs — AI Business Documents for South Africa" },
       { name: "twitter:title", content: "NexDocs — AI Business Documents for South Africa" },
       { property: "og:description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
       { name: "twitter:description", content: "AI-powered business document generator. Contracts, quotes, HR docs, legal letters. Built for South African businesses." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/85e43947-ac8d-4384-929a-72ebd9f9e30e/id-preview-397a4290--70043a93-1c9e-476d-acd9-1091358975e0.lovable.app-1782384389109.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/85e43947-ac8d-4384-929a-72ebd9f9e30e/id-preview-397a4290--70043a93-1c9e-476d-acd9-1091358975e0.lovable.app-1782384389109.png" },
+      { property: "og:image", content: "https://nexdocs.cossanexusholdings.co.za/logos/nexdocs-logo.png" },
+      { name: "twitter:image", content: "https://nexdocs.cossanexusholdings.co.za/logos/nexdocs-logo.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "NexDocs",
-          url: "https://nexdoc-cossanexusholdings.lovable.app",
+          url: "https://nexdocs.cossanexusholdings.co.za/",
           description: "AI-powered business document generator for South African businesses by Cossa Nexus Holdings.",
           parentOrganization: { "@type": "Organization", name: "Cossa Nexus Holdings" },
           areaServed: "ZA",
@@ -110,38 +110,80 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function WhatsAppButton() {
+function ContactMenu() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <a
-      href={`https://wa.me/${WHATSAPP_NUMBER}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg shadow-black/40 active:scale-95 transition"
-    >
-      <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.588-5.94C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 018.413 3.488 11.82 11.82 0 013.48 8.414c-.003 6.554-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.595 5.392l-.999 3.648 3.893-1.039zM17.41 14.382c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
-    </a>
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
+      {open && (
+        <div
+          id="nexdocs-contact-menu"
+          className="w-60 rounded-xl border border-gold/40 bg-black/95 p-2 shadow-2xl shadow-black/60 backdrop-blur"
+        >
+          <Link
+            to="/assistant"
+            className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-charcoal"
+          >
+            <span>Ask NexDocs AI</span>
+            <span aria-hidden="true" className="text-gold">→</span>
+          </Link>
+          <a
+            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hi%20NexDocs%2C%20I%20need%20help.`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-charcoal"
+          >
+            <span>WhatsApp us</span>
+            <span aria-hidden="true" className="text-[#25D366]">●</span>
+          </a>
+          <a
+            href="tel:+27678011907"
+            className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-charcoal"
+          >
+            <span>Call +27 67 801 1907</span>
+            <span aria-hidden="true" className="text-gold">↗</span>
+          </a>
+          <a
+            href="mailto:cossa@cossanexusholdings.co.za?subject=NexDocs%20support"
+            className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-charcoal"
+          >
+            <span>Email NexDocs support</span>
+            <span aria-hidden="true" className="text-gold">↗</span>
+          </a>
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => setOpen((isOpen) => !isOpen)}
+        aria-expanded={open}
+        aria-controls="nexdocs-contact-menu"
+        className="flex min-h-12 items-center justify-center rounded-full bg-gold-gradient px-5 text-sm font-semibold text-primary-foreground shadow-lg shadow-black/40 transition active:scale-95"
+      >
+        {open ? "Close" : "Need help?"}
+      </button>
+    </div>
   );
 }
 
 function Header() {
   const { user, profile, signOut } = useAuth();
+
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-navy-deep/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-black/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={CNH_LOGO} alt="Cossa Nexus Holdings" className="h-9 w-9 rounded-md object-cover" />
+        <Link to="/" className="flex items-center gap-2" aria-label="NexDocs home">
+          <img src={NEXDOCS_LOGO} alt="NexDocs" className="h-9 w-9 rounded-md object-cover" />
           <span className="font-display text-lg text-gold-gradient">NexDocs</span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2 text-sm">
+        <nav className="flex items-center gap-1 text-sm sm:gap-2">
           {user ? (
             <>
-              <Link to="/dashboard" className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Dashboard</Link>
-              <Link to="/assistant" className="px-2 sm:px-3 py-1.5 rounded-md text-gold hover:text-gold-gradient">AI</Link>
+              <Link to="/dashboard" className="rounded-md px-2 py-1.5 text-foreground/80 hover:text-foreground sm:px-3">Dashboard</Link>
+              <Link to="/assistant" className="rounded-md px-2 py-1.5 text-gold hover:text-gold-gradient sm:px-3">AI</Link>
               {profile?.isAdmin && (
-                <Link to="/admin" className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Admin</Link>
+                <Link to="/admin" className="rounded-md px-2 py-1.5 text-foreground/80 hover:text-foreground sm:px-3">Admin</Link>
               )}
-              <button onClick={() => signOut()} className="px-2 sm:px-3 py-1.5 rounded-md text-foreground/80 hover:text-foreground">Sign out</button>
+              <button onClick={() => signOut()} className="rounded-md px-2 py-1.5 text-foreground/80 hover:text-foreground sm:px-3">Sign out</button>
             </>
           ) : (
             <Link to="/auth" className="rounded-md bg-gold-gradient px-4 py-2 font-semibold text-primary-foreground">Sign in</Link>
@@ -156,59 +198,77 @@ function Footer() {
   const year = new Date().getFullYear();
   const col = (title: string, links: { label: string; to?: string; href?: string }[]) => (
     <div>
-      <div className="font-display text-sm text-gold mb-3">{title}</div>
+      <div className="mb-3 font-display text-sm text-gold">{title}</div>
       <ul className="space-y-2 text-sm text-muted-foreground">
-        {links.map((l) =>
-          l.to ? (
-            <li key={l.label}><Link to={l.to} className="hover:text-foreground">{l.label}</Link></li>
+        {links.map((link) => {
+          const isExternal = Boolean(link.href?.startsWith("http"));
+          return link.to ? (
+            <li key={link.label}>
+              <Link to={link.to} className="hover:text-foreground">{link.label}</Link>
+            </li>
           ) : (
-            <li key={l.label}><a href={l.href} className="hover:text-foreground">{l.label}</a></li>
-          )
-        )}
+            <li key={link.label}>
+              <a
+                href={link.href}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
+                className="hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
+
   return (
-    <footer className="mt-16 border-t border-border/60 bg-navy-deep/60 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+    <footer className="mt-16 border-t border-border/60 bg-black">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-6">
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2">
-            <img src={CNH_LOGO} alt="NexDocs AI" className="h-9 w-9 rounded-md object-cover" />
-            <div className="font-display text-lg text-gold-gradient">NexDocs AI</div>
+            <img src={NEXDOCS_LOGO} alt="NexDocs" className="h-10 w-10 rounded-md object-cover" />
+            <div className="font-display text-lg text-gold-gradient">NexDocs</div>
           </div>
-          <div className="mt-2 text-sm text-muted-foreground max-w-sm">
-            South Africa's AI Business Platform. Contracts, quotes, HR, compliance and business advice — powered by AI.
-          </div>
-          <div className="mt-4 flex gap-3 text-muted-foreground">
-            <a href="#" aria-label="LinkedIn" className="hover:text-foreground">in</a>
-            <a href="#" aria-label="X" className="hover:text-foreground">𝕏</a>
-            <a href="#" aria-label="Facebook" className="hover:text-foreground">f</a>
-            <a href="#" aria-label="Instagram" className="hover:text-foreground">ig</a>
+          <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+            AI business documents and practical guidance for South African businesses.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">A Cossa Nexus Holdings product.</p>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+            <a href="tel:+27678011907" className="text-gold hover:text-gold-soft">+27 67 801 1907</a>
+            <a href="mailto:cossa@cossanexusholdings.co.za" className="text-gold hover:text-gold-soft">Email us</a>
           </div>
         </div>
         {col("Product", [
-          { label: "Features", to: "/" },
+          { label: "Document templates", href: "/#templates" },
           { label: "Pricing", to: "/subscribe" },
           { label: "AI Assistant", to: "/assistant" },
           { label: "Dashboard", to: "/dashboard" },
         ])}
-        {col("Company", [
-          { label: "About", to: "/" },
-          { label: "Blog", href: "#" },
-          { label: "Contact", href: "#" },
-          { label: "Support", href: "#" },
+        {col("Support", [
+          { label: "Contact Cossa", href: "mailto:cossa@cossanexusholdings.co.za?subject=NexDocs%20enquiry" },
+          { label: "WhatsApp", href: `https://wa.me/${WHATSAPP_NUMBER}?text=Hi%20NexDocs%2C%20I%20need%20help.` },
+          { label: "Call us", href: "tel:+27678011907" },
+          { label: "Support email", href: "mailto:cossa@cossanexusholdings.co.za?subject=NexDocs%20support" },
+        ])}
+        {col("Cossa platforms", [
+          { label: "Cossa Nexus Holdings", href: "https://cossanexusholdings.co.za/" },
+          { label: "Cossa Growth", href: "https://growth.cossanexusholdings.co.za/" },
+          { label: "Cossa Store", href: "https://store.cossanexusholdings.co.za/" },
+          { label: "Cossa Nexus Constructions", href: "https://cossanexusholdings.co.za/industries" },
         ])}
         {col("Legal", [
-          { label: "Privacy Policy", href: "#" },
-          { label: "Terms", href: "#" },
-          { label: "POPIA", href: "#" },
-          { label: "Documentation", href: "#" },
+          { label: "Privacy & POPIA", href: "https://cossanexusholdings.co.za/privacy" },
+          { label: "Terms & Conditions", href: "https://cossanexusholdings.co.za/terms" },
+          { label: "Cookie Policy", href: "https://cossanexusholdings.co.za/cookies" },
+          { label: "Company contact", href: "mailto:cossa@cossanexusholdings.co.za" },
         ])}
       </div>
       <div className="border-t border-border/60">
-        <div className="mx-auto max-w-6xl px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <div>© {year} NexDocs AI. All rights reserved.</div>
-          <div>Developed by <span className="text-gold">Cossa Nexus Holdings (Pty) Ltd</span></div>
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-muted-foreground sm:flex-row">
+          <div>© {year} NexDocs. All rights reserved.</div>
+          <div>Built by <span className="text-gold">Cossa Nexus Holdings (Pty) Ltd</span></div>
         </div>
       </div>
     </footer>
@@ -226,7 +286,7 @@ function RootComponent() {
             <Outlet />
           </main>
           <Footer />
-          <WhatsAppButton />
+          <ContactMenu />
         </div>
       </AuthProvider>
     </QueryClientProvider>

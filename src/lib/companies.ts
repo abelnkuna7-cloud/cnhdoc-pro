@@ -15,7 +15,7 @@ export type Company = {
 export const COMPANIES: Company[] = [
   {
     id: "construction",
-    name: "Cossa Construction & DIY",
+    name: "Cossa Nexus Constructions",
     tagline: "Your Home, Our Expertise",
     logo: "/logos/cossa-construction-logo.png",
     documents: [

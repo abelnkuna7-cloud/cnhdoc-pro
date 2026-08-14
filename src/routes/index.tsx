@@ -61,11 +61,6 @@ export const Route = createFileRoute("/")({
             "@type": "Organization",
             name: "Cossa Nexus Holdings (Pty) Ltd",
           },
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: "4.9",
-            reviewCount: "127",
-          },
         }),
       },
       {
@@ -142,20 +137,18 @@ const COMPARE = {
 };
 
 const USE_CASES = [
-  { industry: "Construction", icon: "🏗️", title: "Tender pack in a morning", body: "A Gauteng contractor uses NexDocs AI to assemble CIDB tender responses, safety files, method statements and BOQ cover letters — cutting a week of admin down to a single morning." },
-  { industry: "Cleaning & Facilities", icon: "🧽", title: "SLA + inspection templates", body: "A Cape Town cleaning business generates SLAs, site inspection reports and incident forms on the go — clients sign the same day and invoices go out that afternoon." },
-  { industry: "HR & Compliance", icon: "📋", title: "POPIA & BCEA-ready HR", body: "A business consultant drafts employment contracts, disciplinary notices and POPIA privacy notices with correct SA references baked in — no legal template shopping." },
-  { industry: "Hospitality", icon: "🍽️", title: "Quotes clients pay faster", body: "A Durban restaurant owner sends premium catering quotations and event booking confirmations that look enterprise-grade — average payment time drops noticeably." },
-  { industry: "Technology", icon: "💻", title: "NDAs, SOWs and MSAs in minutes", body: "A tech founder produces mutual NDAs, statements of work and SaaS subscription agreements from a phone — closing deals without waiting for a lawyer." },
-  { industry: "Retail & Logistics", icon: "🚚", title: "Invoices with VAT done right", body: "SA retailers and couriers issue compliant tax invoices with 15% VAT, POPIA-ready customer notices, and returns forms — SARS-friendly out of the box." },
+  { industry: "Construction", icon: "🏗️", title: "Tender-ready documents", body: "Create construction quotations, method statements, risk assessments and safety-file documents from one guided workspace." },
+  { industry: "Cleaning & Facilities", icon: "🧽", title: "Service delivery records", body: "Prepare service agreements, inspection reports, schedules and incident forms for cleaning and facility work." },
+  { industry: "HR & Compliance", icon: "📋", title: "Workplace documentation", body: "Start HR letters, employment contracts and privacy notices with South African business context built in." },
+  { industry: "Hospitality", icon: "🍽️", title: "Event and catering workflow", body: "Create polished catering quotations, booking confirmations and event brief documents ready for review." },
+  { industry: "Technology", icon: "💻", title: "Commercial agreements", body: "Draft NDAs, scopes of work and service agreements for technology and professional-service projects." },
+  { industry: "Retail & Logistics", icon: "🚚", title: "Sales and delivery records", body: "Prepare VAT-aware invoices, supplier forms, returns documents and transport paperwork in ZAR." },
 ];
 
 const PLANS = [
-  { name: "Free Trial", price: "R0", period: "10 days", features: ["Unlimited documents", "AI Assistant", "PDF export", "No credit card"], cta: "Start free trial", highlight: false },
-  { name: "Starter", price: "R99", period: "/ month", features: ["50 documents / month", "AI Assistant", "PDF & Word export", "Email support"], cta: "Choose Starter", highlight: false },
-  { name: "Professional", price: "R299", period: "/ month", features: ["Unlimited documents", "AI Assistant Pro", "Branded templates", "Priority support"], cta: "Choose Professional", highlight: true },
-  { name: "Business", price: "R699", period: "/ month", features: ["Team seats (5)", "Client portal", "Digital signatures", "Analytics"], cta: "Choose Business", highlight: false },
-  { name: "Enterprise", price: "Custom", period: "", features: ["White-label", "SSO & audit logs", "Dedicated success mgr", "SLA & onboarding"], cta: "Talk to sales", highlight: false },
+  { name: "Free Trial", price: "R0", period: "10 days", features: ["Unlimited documents", "AI Assistant", "PDF export", "No credit card"], cta: "Start free trial", highlight: false, contact: false },
+  { name: "NexDocs Monthly", price: "R99", period: "/ month", features: ["Unlimited documents", "AI Assistant", "PDF export", "Email support"], cta: "Start free trial", highlight: true, contact: false },
+  { name: "Business workspace", price: "Talk to us", period: "", features: ["Business onboarding", "Workflow guidance", "Priority support", "Growth platform options"], cta: "Contact Cossa", highlight: false, contact: true },
 ];
 
 const FAQS = [
@@ -197,7 +190,7 @@ function Hero() {
     <section className="relative overflow-hidden">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:py-24 text-center">
         <img src={NEXDOCS_LOGO} alt="NexDocs AI logo" className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-2xl shadow-black/40" />
-        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-navy-deep/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-gold">
+        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-black/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-gold">
           <span>🇿🇦</span> South Africa's AI Business Platform
         </div>
         <h1 className="mt-5 font-display text-4xl sm:text-6xl leading-tight">
@@ -218,7 +211,7 @@ function Hero() {
           </Link>
           <Link
             to="/assistant"
-            className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground hover:bg-navy/40 transition"
+            className="rounded-lg border border-gold/40 px-6 py-3 font-semibold text-foreground hover:bg-charcoal/40 transition"
           >
             Try AI Assistant
           </Link>
@@ -236,7 +229,7 @@ function Hero() {
 
 function TrustBar() {
   return (
-    <section aria-label="Trust indicators" className="border-y border-border/60 bg-navy-deep/40">
+    <section aria-label="Trust indicators" className="border-y border-border/60 bg-black/40">
       <div className="mx-auto max-w-6xl px-4 py-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
         {TRUST.map((t) => (
           <div key={t.label} className="flex items-center gap-2">
@@ -290,9 +283,14 @@ function Industries() {
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {INDUSTRIES.map((i) => (
-          <div key={i.name} className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur hover:border-gold/40 transition">
+          <a
+            key={i.name}
+            href="#templates"
+            className="rounded-xl border border-border/60 bg-card/60 p-5 backdrop-blur transition hover:border-gold/60 hover:bg-charcoal"
+            aria-label={`Browse ${i.name} document templates`}
+          >
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-md bg-gold-gradient flex items-center justify-center text-lg" aria-hidden>{i.icon}</div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-gold-gradient text-lg" aria-hidden>{i.icon}</div>
               <div>
                 <div className="font-display text-lg">{i.name}</div>
                 <div className="text-xs text-muted-foreground">{i.desc}</div>
@@ -300,9 +298,9 @@ function Industries() {
             </div>
             <div className="mt-4 flex items-center justify-between text-xs">
               <span className="text-gold">{i.count} templates</span>
-              <span className="text-muted-foreground">🤖 AI Assistant supported</span>
+              <span className="text-muted-foreground">Browse library →</span>
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </section>
@@ -317,10 +315,10 @@ function AssistantShowcase() {
         title="Ask. Generate. Send."
         subtitle="See how NexDocs AI turns a single sentence into a professional, ready-to-send document."
       />
-      <div className="rounded-2xl border border-gold/30 bg-navy-deep/70 p-4 sm:p-6 backdrop-blur shadow-2xl shadow-black/40">
+      <div className="rounded-2xl border border-gold/30 bg-black/70 p-4 sm:p-6 backdrop-blur shadow-2xl shadow-black/40">
         <div className="space-y-3">
           <div className="flex justify-end">
-            <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-navy/70 px-4 py-3 text-sm border border-border/60">
+            <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-charcoal/70 px-4 py-3 text-sm border border-border/60">
               Create a quotation for painting a warehouse in Johannesburg.
             </div>
           </div>
@@ -421,7 +419,7 @@ function DocumentGallery() {
       // watermark
       doc.setTextColor(220, 220, 220);
       doc.setFontSize(64);
-      doc.text("SAMPLE DOCUMENT", width / 2, height / 2, { align: "center", angle: -30 });
+      doc.text("NEXDOCS PREVIEW", width / 2, height / 2, { align: "center", angle: -30 });
       // body
       doc.setTextColor(20, 20, 20);
       doc.setFont("helvetica", "normal");
@@ -436,7 +434,7 @@ function DocumentGallery() {
   };
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+    <section id="templates" className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
         eyebrow="Template library"
         title="Professional documents, ready to send"
@@ -489,34 +487,45 @@ function DocumentGallery() {
                   Popular
                 </span>
               )}
-              <div className="aspect-[3/4] rounded-md bg-gradient-to-br from-navy to-navy-deep p-4 flex flex-col border border-border/60 relative overflow-hidden">
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.06] text-4xl font-display rotate-[-25deg] whitespace-nowrap">
-                  SAMPLE · NEXDOCS
-                </div>
-                <div className="flex items-start justify-between">
-                  <div className="text-3xl">{t.icon}</div>
+              <div className="relative flex aspect-[3/4] flex-col overflow-hidden rounded-md border border-border/60 bg-gradient-to-b from-charcoal to-black p-4">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.18),transparent_34%)]" />
+                <div className="relative flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <img src={NEXDOCS_LOGO} alt="" aria-hidden="true" className="h-7 w-7 rounded object-cover" />
+                    <div>
+                      <div className="text-[9px] font-semibold uppercase tracking-[0.16em] text-gold">NexDocs</div>
+                      <div className="text-[8px] uppercase tracking-wide text-muted-foreground">Business document</div>
+                    </div>
+                  </div>
                   <div className="rounded bg-gold/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gold">
                     {t.category}
                   </div>
                 </div>
-                <div className="mt-3 font-display text-sm text-gold-gradient leading-tight">{t.title}</div>
-                <div className="mt-2 space-y-1">
-                  <div className="h-1.5 w-full rounded bg-border/70" />
-                  <div className="h-1.5 w-11/12 rounded bg-border/60" />
-                  <div className="h-1.5 w-10/12 rounded bg-border/50" />
-                  <div className="h-1.5 w-full rounded bg-border/40" />
-                  <div className="h-1.5 w-9/12 rounded bg-border/40" />
+                <div className="relative mt-6 border-t border-gold/30 pt-3">
+                  <div className="font-display text-base leading-tight text-gold-gradient">{t.title}</div>
+                  <div className="mt-1 text-[8px] uppercase tracking-[0.14em] text-muted-foreground">Ready to personalise</div>
                 </div>
-                <div className="mt-auto flex items-center justify-between pt-2">
-                  <div className="h-2 w-10 rounded bg-gold/50" />
-                  <div className="h-2 w-6 rounded bg-border/60" />
+                <div className="relative mt-4 space-y-1.5 text-[8px] leading-relaxed text-foreground/70">
+                  {t.pages[0]
+                    .split("\n")
+                    .filter((line) => line.trim())
+                    .slice(0, 4)
+                    .map((line, lineIndex) => (
+                      <div key={lineIndex} className="truncate border-b border-border/40 pb-1">
+                        {line.replace(/\[[^\]]+\]/g, "________")}
+                      </div>
+                    ))}
+                </div>
+                <div className="relative mt-auto flex items-center justify-between border-t border-border/60 pt-3 text-[9px] font-medium">
+                  <span className="text-muted-foreground">Preview document</span>
+                  <span className="text-gold">Open →</span>
                 </div>
               </div>
               <div className="mt-3 space-y-2">
                 <div className="text-sm font-semibold text-foreground group-hover:text-gold transition">{t.title}</div>
                 <div className="text-xs text-muted-foreground line-clamp-2">{t.description}</div>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="rounded bg-navy px-2 py-0.5 text-[10px] text-muted-foreground border border-border/60">⚡ {t.generationTime}</span>
+                  <span className="rounded bg-charcoal px-2 py-0.5 text-[10px] text-muted-foreground border border-border/60">⚡ {t.generationTime}</span>
                   {t.aiSupported && (
                     <span className="rounded bg-gold/10 px-2 py-0.5 text-[10px] text-gold border border-gold/30">🤖 AI supported</span>
                   )}
@@ -579,7 +588,7 @@ function TemplateModal({
                 {t.category}
               </span>
               {t.popular && (
-                <span className="rounded-full bg-navy px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground border border-border/60">
+                <span className="rounded-full bg-charcoal px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground border border-border/60">
                   Popular
                 </span>
               )}
@@ -592,7 +601,7 @@ function TemplateModal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-navy-deep to-navy p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-black to-charcoal p-4 sm:p-6">
           {details ? (
             <div className="mx-auto max-w-2xl rounded-xl border border-border/60 bg-card/70 p-5 text-sm text-foreground/90 space-y-3">
               <div className="font-display text-lg text-gold">Template details</div>
@@ -698,7 +707,7 @@ function TemplateModal({
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border/60 bg-navy-deep/50 p-2">
+    <div className="rounded-md border border-border/60 bg-black/50 p-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
       <div className="text-sm text-foreground">{value}</div>
     </div>
@@ -718,7 +727,7 @@ function WhyChoose() {
             ))}
           </ul>
         </div>
-        <div className="rounded-xl border border-gold/40 bg-gradient-to-b from-navy to-navy-deep p-6 shadow-lg shadow-gold/10">
+        <div className="rounded-xl border border-gold/40 bg-gradient-to-b from-charcoal to-black p-6 shadow-lg shadow-gold/10">
           <div className="font-display text-lg mb-3 text-gold-gradient">NexDocs AI</div>
           <ul className="space-y-2 text-sm text-foreground">
             {COMPARE.nexdocs.map((x) => (
@@ -735,9 +744,9 @@ function Testimonials() {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
       <SectionHeader
-        eyebrow="Real-world use cases"
-        title="How South African businesses use NexDocs AI"
-        subtitle="Real workflows across construction, cleaning, HR, hospitality, technology, retail and logistics. Verified customer stories will replace these as they come in."
+        eyebrow="Everyday workflows"
+        title="Built for practical business work"
+        subtitle="Explore the document workflows NexDocs is designed to support across South African businesses."
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {USE_CASES.map((u) => (
@@ -769,7 +778,7 @@ function Pricing() {
             className={
               "rounded-xl border p-5 backdrop-blur flex flex-col " +
               (p.highlight
-                ? "border-gold/60 bg-gradient-to-b from-navy to-navy-deep shadow-xl shadow-gold/10 relative"
+                ? "border-gold/60 bg-gradient-to-b from-charcoal to-black shadow-xl shadow-gold/10 relative"
                 : "border-border/60 bg-card/60")
             }
           >
@@ -788,17 +797,26 @@ function Pricing() {
                 <li key={f} className="flex gap-2"><span className="text-gold">✓</span>{f}</li>
               ))}
             </ul>
-            <Link
-              to="/auth"
-              className={
-                "mt-5 block text-center rounded-md px-4 py-2 text-sm font-semibold transition " +
-                (p.highlight
-                  ? "bg-gold-gradient text-primary-foreground"
-                  : "border border-gold/40 text-foreground hover:bg-navy/40")
-              }
-            >
-              {p.cta}
-            </Link>
+            {p.contact ? (
+              <a
+                href="mailto:cossa@cossanexusholdings.co.za?subject=NexDocs%20business%20workspace"
+                className="mt-5 block rounded-md border border-gold/40 px-4 py-2 text-center text-sm font-semibold text-foreground transition hover:bg-charcoal/40"
+              >
+                {p.cta}
+              </a>
+            ) : (
+              <Link
+                to="/auth"
+                className={
+                  "mt-5 block text-center rounded-md px-4 py-2 text-sm font-semibold transition " +
+                  (p.highlight
+                    ? "bg-gold-gradient text-primary-foreground"
+                    : "border border-gold/40 text-foreground hover:bg-charcoal/40")
+                }
+              >
+                {p.cta}
+              </Link>
+            )}
           </div>
         ))}
       </div>
@@ -837,7 +855,7 @@ function FAQ() {
 function CTA() {
   return (
     <section className="mx-auto max-w-6xl px-4 pb-20">
-      <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-navy to-navy-deep p-8 sm:p-12 text-center shadow-2xl shadow-black/40">
+      <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-charcoal to-black p-8 sm:p-12 text-center shadow-2xl shadow-black/40">
         <h2 className="font-display text-3xl sm:text-4xl">
           <span className="text-foreground">Ready to run your business</span>{" "}
           <span className="text-gold-gradient">smarter?</span>
@@ -859,15 +877,12 @@ function CTA() {
 }
 
 const SECURITY_ITEMS = [
-  { title: "SSL / TLS Encryption", body: "All traffic encrypted end-to-end with modern TLS. Your documents never travel in the clear." },
-  { title: "Secure Cloud Storage", body: "Documents stored in encrypted, access-controlled cloud infrastructure with per-user isolation." },
-  { title: "Daily Backups", body: "Automated daily backups with point-in-time recovery so your business data is never lost." },
-  { title: "Audit Logs", body: "Every generate, download and share action is logged for compliance and internal review." },
-  { title: "Role-Based Permissions", body: "Owner, admin and staff roles with granular access — coming with team workspaces." },
-  { title: "Secure Authentication", body: "Email + password with hardened session management. SSO and 2FA on the enterprise roadmap." },
-  { title: "POPIA Compliant", body: "Built to South Africa's Protection of Personal Information Act — lawful processing by design." },
-  { title: "Privacy First", body: "We never sell your data. Your documents and business memory belong to you, always." },
-  { title: "Enterprise-Grade Infrastructure", body: "Runs on globally distributed edge infrastructure with 99.9% target uptime." },
+  { title: "HTTPS protection", body: "NexDocs is served over HTTPS so data is protected in transit between your browser and the service." },
+  { title: "Account sign-in", body: "Email and password sign-in is managed through the connected authentication service." },
+  { title: "Private workspace", body: "Your account workspace is separated from other signed-in users." },
+  { title: "Privacy-first approach", body: "NexDocs is designed to minimise personal information and does not sell customer data." },
+  { title: "POPIA-ready templates", body: "Use privacy notices, consent forms and related templates as a starting point for review." },
+  { title: "Security roadmap", body: "Team roles, detailed audit records, 2FA and recovery controls are planned before enterprise rollout." },
 ];
 
 function Security() {
@@ -919,7 +934,7 @@ function Integrations() {
         {INTEGRATIONS.map((i) => (
           <div key={i.name} className="group rounded-xl border border-border/60 bg-card/70 p-4 hover:border-gold/60 transition relative">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-navy-deep/60 flex items-center justify-center text-xl">{i.icon}</div>
+              <div className="h-10 w-10 rounded-lg bg-black/60 flex items-center justify-center text-xl">{i.icon}</div>
               <div className="min-w-0">
                 <div className="font-semibold text-foreground truncate">{i.name}</div>
                 <div className="text-[11px] text-muted-foreground">{i.category}</div>
