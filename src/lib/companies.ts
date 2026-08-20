@@ -15,8 +15,8 @@ export type Company = {
 export const COMPANIES: Company[] = [
   {
     id: "construction",
-    name: "Cossa Nexus Constructions",
-    tagline: "Your Home, Our Expertise",
+    name: "Cossa Nexus Construction",
+    tagline: "Construction, Renovations & Property Improvement",
     logo: "/logos/cossa-construction-logo.png",
     documents: [
       "Construction Quotation", "Building Contract", "Site Safety Plan", "Risk Assessment",
@@ -28,21 +28,21 @@ export const COMPANIES: Company[] = [
   {
     id: "facility",
     name: "Cossa Facility Services",
-    tagline: "Cleaning & Facility Management",
+    tagline: "Cleaning, Hygiene & Facility Support",
     logo: "/logos/cossa-facility-logo.png",
     documents: ["Cleaning Service Agreement", "Site Inspection Report", "Cleaning Schedule", "SLA Document", "Incident Report"],
   },
   {
     id: "store",
     name: "Cossa Store",
-    tagline: "Lifestyle & Fashion",
+    tagline: "E-commerce & Digital Products",
     logo: "/logos/cossa-store-logo.png",
     documents: ["Sales Invoice", "Refund / Return Form"],
   },
   {
     id: "tech",
     name: "Cossa Tech",
-    tagline: "Technology Solutions",
+    tagline: "Web, AI, Marketing & Business Technology",
     logo: "/logos/cossa-tech-logo.png",
     documents: [
       "Software Development Quote", "SaaS Subscription Agreement", "IT Service Contract",
@@ -50,19 +50,9 @@ export const COMPANIES: Company[] = [
     ],
   },
   {
-    id: "cuisine",
-    name: "Cossa Cuisine",
-    tagline: "Professional Catering & Hospitality",
-    logo: "/logos/cossa-cuisine-logo.png",
-    documents: [
-      "Catering Quotation", "Event Booking Confirmation", "Menu Proposal", "Catering Service Agreement",
-      "Dietary Requirements Form", "Event Brief", "Post-Event Report",
-    ],
-  },
-  {
     id: "legal",
-    name: "SA Legal & Labour",
-    tagline: "South African Legal & Labour Documents",
+    name: "SA Legal & Labour Templates",
+    tagline: "South African Business, HR & Compliance Templates",
     logo: "/logos/sa-legal-logo.png",
     documents: [
       "Employment Contract (SA)", "Independent Contractor Agreement", "Letter of Appointment",
