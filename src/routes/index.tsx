@@ -40,7 +40,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://nexdocs.cossanexusholdings.co.za/" },
-      { rel: "preload", as: "image", href: "/images/cossa-eagle-hero.jpg", type: "image/jpeg" },
+      { rel: "preload", as: "image", href: "/images/cossa-eagle-hero.webp", type: "image/webp" },
     ],
     scripts: [
       {
@@ -270,10 +270,10 @@ function Hero() {
           <div className="absolute -inset-5 rounded-[2rem] bg-gold/15 blur-3xl" />
           <div className="relative overflow-hidden rounded-[2rem] border border-gold/40 bg-charcoal p-2 shadow-2xl shadow-black/50">
             <img
-              src="/images/cossa-eagle-hero.jpg"
-              alt="Cossa Nexus eagle artwork"
-              width={720}
-              height={1080}
+              src="/images/cossa-eagle-hero.webp"
+              alt="Cossa Nexus Holdings eagle above a gold-lit globe"
+              width={1146}
+              height={1368}
               fetchPriority="high"
               decoding="async"
               className="h-[28rem] w-full rounded-[1.5rem] object-cover object-center"
