@@ -38,6 +38,7 @@ type AuthCtx = {
 };
 
 const AuthContext = createContext<AuthCtx | null>(null);
+const COSSA_ORGANISATION_ID = "00000000-0000-4000-8000-000000000001";
 
 function toAppUser(user: SupabaseUser): AppUser {
   return {
@@ -65,27 +66,58 @@ async function loadProfile(user: SupabaseUser): Promise<UserProfile> {
   ]);
 
   const memberships = membershipRows ?? [];
-  const privilegedMembership =
+  const billingMembership =
     memberships.find((row) => row.role === "owner" || row.role === "admin") ??
     null;
+  const cossaMembership = memberships.find(
+    (row) =>
+      row.organisation_id === COSSA_ORGANISATION_ID &&
+      (row.role === "owner" || row.role === "admin"),
+  ) ?? null;
   const isAdmin =
-    Boolean(privilegedMembership) ||
+    Boolean(cossaMembership) ||
     (roleRows ?? []).some((row) => row.role === "admin");
 
   const createdAt = user.created_at
     ? new Date(user.created_at).getTime()
     : Date.now();
+  const organisationId = cossaMembership?.organisation_id ?? billingMembership?.organisation_id ?? null;
+
+  const { data: subscriptionRows } = organisationId
+    ? await supabase
+        .from("organisation_subscriptions")
+        .select("status,current_period_ends_at,trial_ends_at")
+        .eq("organisation_id", organisationId)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+    : { data: [] };
+
+  const subscription = subscriptionRows?.[0] ?? null;
+  const periodEndsAt = subscription?.current_period_ends_at
+    ? new Date(subscription.current_period_ends_at).getTime()
+    : 0;
+  const trialEndsAt = subscription?.trial_ends_at
+    ? new Date(subscription.trial_ends_at).getTime()
+    : createdAt + 10 * 24 * 60 * 60 * 1000;
+  const subscriptionStatus: UserProfile["subscriptionStatus"] =
+    cossaMembership || (subscription?.status === "active" && periodEndsAt > Date.now())
+      ? "active"
+      : trialEndsAt > Date.now()
+        ? "trial"
+        : subscription?.status === "cancelled"
+          ? "cancelled"
+          : "expired";
 
   return {
     uid: user.id,
     email: user.email ?? "",
     displayName: toAppUser(user).displayName,
     createdAt,
-    trialEndsAt: createdAt + 10 * 24 * 60 * 60 * 1000,
-    subscriptionStatus: "active",
+    trialEndsAt,
+    subscriptionStatus,
     isAdmin,
-    organisationId: privilegedMembership?.organisation_id ?? null,
-    isCossaWorkspace: isAdmin && Boolean(privilegedMembership?.organisation_id),
+    organisationId,
+    isCossaWorkspace: Boolean(cossaMembership),
   };
 }
 
@@ -198,7 +230,7 @@ export function hasActiveAccess(profile: UserProfile | null): boolean {
 }
 
 export function daysLeft(profile: UserProfile | null): number {
-  if (!profile || profile.subscriptionStatus === "active") return 10;
+  if (!profile || profile.subscriptionStatus === "active") return 0;
   const remaining = profile.trialEndsAt - Date.now();
   return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
 }
