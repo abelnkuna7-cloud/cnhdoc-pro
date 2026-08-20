@@ -74,29 +74,17 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
         };
       }
 
-      const prompt = [
-        SYSTEM_PROMPT,
-        data.businessHint
-          ? "Private business profile for this signed-in user:\n" + data.businessHint
-          : "",
-        "Conversation:",
-        ...data.messages.map(
-          (message) =>
-            `${message.role === "assistant" ? "NexDocs" : "User"}: ${message.content}`,
-        ),
-      ]
-        .filter(Boolean)
-        .join("\n\n");
-
       const response = await fetch(
-        "https://nexdocs-api.abelnkuna7.workers.dev/api/generate",
+        "https://cossanexusholdings.co.za/api/nexdocs-ai",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            prompt,
-            documentType: inferredInput ? inferredInput.documentType : "business guidance",
-            companyName: inferredInput?.company || "the business",
+            messages: data.messages.map((message) => ({
+              role: message.role === "assistant" ? "assistant" : "user",
+              content: message.content,
+            })),
+            businessHint: data.businessHint,
           }),
         },
       );
@@ -112,19 +100,19 @@ export const chatWithAssistant = createServerFn({ method: "POST" })
         const message = await response.text();
         return {
           ok: false as const,
-          error: "AI error " + response.status + ": " + message.slice(0, 200),
+          error: "NexDocs AI error " + response.status + ": " + message.slice(0, 200),
         };
       }
 
       const json = (await response.json()) as {
         content?: string;
-        markdown?: string;
+        text?: string;
       };
 
-      const content = json.content ?? json.markdown ?? "";
+      const content = json.content ?? json.text ?? "";
 
       if (!content) {
-        return { ok: false as const, error: "Empty response from AI" };
+        return { ok: false as const, error: "Empty response from NexDocs AI" };
       }
 
       if (inferredInput) {
